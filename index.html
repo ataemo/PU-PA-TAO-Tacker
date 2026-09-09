@@ -239,12 +239,12 @@
   .rank-slot .rs-controls span{cursor:pointer; font-size:12px; background:var(--card-2); border-radius:8px; padding:2px 7px; border:1px solid var(--border);}
 
   .pill-tabs-wrap{position:relative; margin-bottom:16px;}
-  .pill-tabs{display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none;}
+  .pill-tabs{display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none; position:relative; z-index:1;}
   .pill-tabs::-webkit-scrollbar{display:none;}
-  .pill-tabs .pill{padding:8px 16px; border-radius:20px; background:var(--card); border:1px solid var(--border); font-size:12.5px; font-weight:600; color:var(--text-dim); cursor:pointer; white-space:nowrap;}
+  .pill-tabs .pill{padding:8px 16px; border-radius:20px; background:var(--card); border:1px solid var(--border); font-size:12.5px; font-weight:600; color:var(--text-dim); cursor:pointer; white-space:nowrap; position:relative; z-index:2;}
   .pill-tabs .pill.active{background:var(--hero-gradient); border-color:transparent; color:#fff;}
 
-  .scroll-fade{position:absolute; top:0; bottom:0; width:34px; pointer-events:none; opacity:0; transition:opacity .2s;}
+  .scroll-fade{position:absolute; top:0; bottom:0; width:34px; pointer-events:none !important; opacity:0; transition:opacity .2s; z-index:0;}
   .scroll-fade.show{opacity:1;}
   .scroll-fade.left{left:0; background:linear-gradient(to right, var(--bg) 10%, transparent);}
   .scroll-fade.right{right:0; background:linear-gradient(to left, var(--bg) 10%, transparent);}
@@ -468,6 +468,7 @@
 
       <div id="atab-animals" style="display:none;">
         <div class="hint" style="margin-bottom:12px;">ກົດ "📷 ຮູບ" ຢູ່ແຕ່ລະແຖວເພື່ອອັບໂຫຼດຮູບໄອຄອນຂອງສັດແຕ່ລະໂຕ (ຮູບຈະຖືກເກັບໄວ້ໃນ Google Drive ຂອງທ່ານເອງ) — ຢ່າລືມກົດ "ບັນທຶກການຕັ້ງຄ່າ" ຂ້າງລຸ່ມຫຼັງແກ້ໄຂແລ້ວ</div>
+        <button class="btn secondary" id="resetIconsBtn" style="margin-bottom:14px;">🔄 ຕັ້ງເປັນຮູບໄອຄອນເລີ່ມຕົ້ນ (ปู/ปา/เต้า/เสือ/ไก่/กุ้ง)</button>
         <div id="animalConfigList"></div>
         <button class="btn secondary" id="addAnimalBtn">+ ເພີ່ມສັດ</button>
       </div>
@@ -603,6 +604,19 @@ const DEFAULT_ANIMAL_ICON = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
 </svg>`);
 
 /* =================================================================
+   ຮູບໄອຄອນມາດຕະຖານຂອງສັດ 6 ໂຕ (ปู/ปา/เต้า/เสือ/ไก่/กุ้ง) — ໃຊ້ຮ່ວມກັນ
+   ທັງຕອນ demo fallback ແລະ ປຸ່ມ "ຕັ້ງເປັນຮູບໄອຄອນເລີ່ມຕົ້ນ" ໃນໜ້າ ຫຼັງບ້ານ
+================================================================= */
+const DEFAULT_ANIMAL_ICON_MAP = {
+  crab:    'https://i.postimg.cc/BnZLb6GK/Pu.png',
+  fish:    'https://i.postimg.cc/rwy0smLN/Pa.png',
+  gourd:   'https://i.postimg.cc/P5fpJxk3/Tao.png',
+  tiger:   'https://i.postimg.cc/ht4zvjqM/Sea.png',
+  rooster: 'https://i.postimg.cc/K8ckjzyt/Kai.png',
+  shrimp:  'https://i.postimg.cc/y86gxdzc/Koung.png'
+};
+
+/* =================================================================
    COLOR PALETTE FOR ANIMAL ICON BACKGROUNDS
 ================================================================= */
 const ICON_GRADIENTS = [
@@ -695,12 +709,12 @@ function callServer(fn, arg){
 ================================================================= */
 function demoFallback(fn, args){
   const demoAnimals = [
-    {Id:'crab',Name:'ปู',Icon:'https://i.postimg.cc/BnZLb6GK/Pu.png',Order:1},
-    {Id:'fish',Name:'ปา',Icon:'https://i.postimg.cc/rwy0smLN/Pa.png',Order:2},
-    {Id:'gourd',Name:'ນ້ຳເຕົ້າ',Icon:'https://i.postimg.cc/P5fpJxk3/Tao.png',Order:3},
-    {Id:'tiger',Name:'ເສືອ',Icon:'https://i.postimg.cc/ht4zvjqM/Sea.png',Order:4},
-    {Id:'rooster',Name:'ໄກ່',Icon:'https://i.postimg.cc/K8ckjzyt/Kai.png',Order:5},
-    {Id:'shrimp',Name:'ກຸ້ງ',Icon:'https://i.postimg.cc/y86gxdzc/Koung.png',Order:6}
+    {Id:'crab',Name:'ปู',Icon:DEFAULT_ANIMAL_ICON_MAP.crab,Order:1},
+    {Id:'fish',Name:'ปา',Icon:DEFAULT_ANIMAL_ICON_MAP.fish,Order:2},
+    {Id:'gourd',Name:'ນ້ຳເຕົ້າ',Icon:DEFAULT_ANIMAL_ICON_MAP.gourd,Order:3},
+    {Id:'tiger',Name:'ເສືອ',Icon:DEFAULT_ANIMAL_ICON_MAP.tiger,Order:4},
+    {Id:'rooster',Name:'ໄກ່',Icon:DEFAULT_ANIMAL_ICON_MAP.rooster,Order:5},
+    {Id:'shrimp',Name:'ກຸ້ງ',Icon:DEFAULT_ANIMAL_ICON_MAP.shrimp,Order:6}
   ];
   const demoBets = [
     {ID:1,Timestamp:new Date(),RoundID:'36260149',RoundDateTime:'08/09/2026 13:05',Animals:'crab,rooster,fish',Stake:40000,Status:'WIN',Payout:120000,Agent:'BCELONE',Username:'admin'},
@@ -721,6 +735,7 @@ function demoFallback(fn, args){
   };
   if (fn==='getConfig') return {...defaultConfigJs()};
   if (fn==='getAnimals') return demoAnimals;
+  if (fn==='resetAnimalIcons') return { ok:true, animals: demoAnimals };
   if (fn==='getBets') return demoBets;
   if (fn==='getRounds') return [];
   if (fn==='getSummary') return {income:120000, expense:10000, net:110000, winCount:1, loseCount:1, pendingCount:0, byDay:[{day:'2026-09-08', income:120000, expense:10000}], byAnimal:[]};
@@ -1406,7 +1421,34 @@ document.getElementById('deleteBetBtn').addEventListener('click', async ()=>{
 
 /* =================================================================
    ADMIN — sub-tabs
+   ---------------------------------------------------------------
+   switchAdminTab() ຖືກແຍກອອກມາເປັນຟັງຊັນຂອງໂຕມັນເອງ (ບໍ່ໄດ້ຂຽນຄ້າງໄວ້
+   ໃນ event listener ດຽວອີກຕໍ່ໄປ) ແລະ ຫໍ່ດ້ວຍ try/catch — ຖ້າມີບັນຫາຫຍັງ
+   ເກີດຂຶ້ນຕອນສະຫຼັບແທັບ (ເຊັ່ນ element ບໍ່ຄົບ), ຈະຂຶ້ນ toast ແຈ້ງເຕືອນ
+   ໃຫ້ເຫັນທັນທີ ແທນທີ່ຈະງຽບໆແລ້ວເບິ່ງຄືກັບວ່າ "ກົດແລ້ວບໍ່ມີຫຍັງເກີດຂຶ້ນ"
+   (ນີ້ຄືອາການທົ່ວໄປຂອງ "ກົດແທັບອື່ນບໍ່ໄດ້" ທີ່ຫາສາເຫດຍາກ ຖ້າບໍ່ມີການແຈ້ງເຕືອນ).
+   ນອກນີ້ ໄດ້ເພີ່ມ z-index/pointer-events ໃນ CSS ຂອງ .pill-tabs .pill ແລະ
+   .scroll-fade ໃຫ້ຈະແຈ້ງຂຶ້ນອີກ ເພື່ອຮັບປະກັນວ່າ pill ທຸກອັນຄລິກໄດ້ສະເໝີ
+   ບໍ່ວ່າຈະຢູ່ຕຳແໜ່ງໃດໃນແຖບ. ຖ້າຫາກລອງແລ້ວຍັງກົດແທັບອື່ນບໍ່ໄດ້ຢູ່ອີກ ໃຫ້ລອງ
+   Hard Refresh (Ctrl+Shift+R ຫຼື Cmd+Shift+R) ຫຼື ລ້າງ cache ຂອງ browser —
+   ເພາະໄຟລ໌ index.html ນີ້ຖືກໂຫລດຈາກ GitHub Pages ຊຶ່ງ browser ມັກຈະເກັບ
+   cache ໄຟລ໌ JS ເກົ່າໄວ້ດົນ, ເຮັດໃຫ້ແກ້ໂຄ້ດແລ້ວແຕ່ຍັງເຫັນອາການເກົ່າຢູ່.
 ================================================================= */
+function switchAdminTab(atab){
+  document.querySelectorAll('#adminPillTabs .pill[data-atab]').forEach(x=>{
+    x.classList.toggle('active', x.dataset.atab === atab);
+  });
+  const activePill = document.querySelector('#adminPillTabs .pill[data-atab="'+atab+'"]');
+  if (activePill && activePill.scrollIntoView) activePill.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+  ['brand','theme','animals','rounds','users'].forEach(t=>{
+    const el = document.getElementById('atab-'+t);
+    if (el) el.style.display = (t===atab) ? 'block' : 'none';
+  });
+  const saveWrap = document.getElementById('atab-brand-save-wrap');
+  if (saveWrap) saveWrap.style.display = (atab==='users') ? 'none' : 'block';
+  if (atab === 'users') loadUsersList();
+  updatePillFade();
+}
 
 /* ---- scroll fade indicator ສຳລັບ pill-tabs ຫຼັງບ້ານ ---- */
 function updatePillFade(){
@@ -1427,17 +1469,14 @@ function updatePillFade(){
 })();
 
 document.getElementById('adminPillTabs').addEventListener('click', (e)=>{
-  const p = e.target.closest('.pill[data-atab]');
-  if (!p) return;
-  document.querySelectorAll('#adminPillTabs .pill[data-atab]').forEach(x=>x.classList.remove('active'));
-  p.classList.add('active');
-  p.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
-  ['brand','theme','animals','rounds','users'].forEach(t=>{
-    document.getElementById('atab-'+t).style.display = (t===p.dataset.atab) ? 'block' : 'none';
-  });
-  document.getElementById('atab-brand-save-wrap').style.display = (p.dataset.atab==='users') ? 'none' : 'block';
-  if (p.dataset.atab === 'users') loadUsersList();
-  updatePillFade();
+  try {
+    const p = e.target.closest('.pill[data-atab]');
+    if (!p) return;
+    switchAdminTab(p.dataset.atab);
+  } catch (err) {
+    console.error('admin tab switch error', err);
+    showToast('ມີບັນຫາໃນການສະຫຼັບແທັບ: ' + err.message);
+  }
 });
 
 /* ---- Logo upload ---- */
@@ -1537,6 +1576,31 @@ function renderAnimalConfigList(){
 document.getElementById('addAnimalBtn').addEventListener('click', ()=>{
   ANIMALS.push({Id:'animal_'+Date.now(), Name:'ສັດໃໝ່', Icon:'', Order: ANIMALS.length+1});
   renderAnimalConfigList();
+});
+
+/* ---- ຕັ້ງເປັນຮູບໄອຄອນເລີ່ມຕົ້ນ — ໃຊ້ URL ຮູບການ໌ຕູນ 6 ໂຕທີ່ກຳນົດໄວ້ຄົງທີ່
+   (ปู/ปา/เต้า/เสือ/ไก่/กุ้ง) ໂດຍກົງ, ບັນທຶກລົງ Sheet ທັນທີຜ່ານ backend ໃໝ່
+   "resetAnimalIcons" (ໃຊ້ໄດ້ເຖິງແມ່ນ Sheet ຈະມີຂໍ້ມູນເກົ່າຢູ່ແລ້ວກໍ່ຕາມ) ---- */
+document.getElementById('resetIconsBtn').addEventListener('click', async ()=>{
+  showToast('ກຳລັງຕັ້ງຄ່າຮູບໄອຄອນເລີ່ມຕົ້ນ... ⏳');
+  try {
+    const res = await callServer('resetAnimalIcons');
+    if (res && res.error) { showToast('ບໍ່ສຳເລັດ: ' + res.error); return; }
+    if (res && Array.isArray(res.animals) && res.animals.length) {
+      ANIMALS = res.animals;
+    } else {
+      // ສຳຮອງ (ເຊັ່ນຢູ່ໂໝດ Demo) — ນຳໃຊ້ຄ່າໃນ ANIMALS ປັດຈຸບັນ ໂດຍປ່ຽນສະເພາະຄໍລຳ Icon ໃຫ້ກົງກັບ 6 ໂຕມາດຕະຖານ
+      ANIMALS.forEach(a => { if (DEFAULT_ANIMAL_ICON_MAP[a.Id]) a.Icon = DEFAULT_ANIMAL_ICON_MAP[a.Id]; });
+    }
+    renderAnimalConfigList();
+    renderAnimalPickers();
+    renderHistory();
+    renderLatestRoundCard();
+    renderRoundsList();
+    showToast('ຕັ້ງຄ່າຮູບໄອຄອນເລີ່ມຕົ້ນສຳເລັດແລ້ວ ✅ (ບັນທຶກລົງ Sheet ໃຫ້ອັດຕະໂນມັດ)');
+  } catch (err) {
+    showToast('ລົ້ມເຫຼວ: ' + err.message);
+  }
 });
 
 function renderRoundsList(){
