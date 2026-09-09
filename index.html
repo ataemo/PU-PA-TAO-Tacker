@@ -133,7 +133,7 @@
 
   .round-card{
     background:var(--card); border-radius:18px; padding:16px 18px; margin-bottom:12px;
-    border:1px solid var(--border); box-shadow:var(--shadow);
+    border:1px solid var(--border); box-shadow:var(--shadow); cursor:pointer;
   }
   .round-card .top{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
   .round-card .round-id{font-size:12px; color:var(--text-dim); font-weight:700;}
@@ -158,7 +158,8 @@
     display:flex; align-items:center; justify-content:space-around; padding:8px 4px calc(10px + env(safe-area-inset-bottom));
     border-radius:26px 26px 0 0; box-shadow:0 -8px 24px rgba(45,43,69,.08); z-index:39;
   }
-  .bottom-nav .item{display:flex; flex-direction:column; align-items:center; gap:4px; color:var(--text-dim); font-size:10px; font-weight:600; cursor:pointer; flex:1; padding:6px 0;}
+  .bottom-nav .item{display:flex; flex-direction:column; align-items:center; gap:4px; color:var(--text-dim); font-size:24px; font-weight:600; cursor:pointer; flex:1; padding:6px 0;}
+  .bottom-nav .item span{font-size:10.5px;}
   .bottom-nav .item span{font-size:9.5px;}
   .bottom-nav .item.active{color:var(--primary);}
   .nav-fab{
@@ -215,9 +216,18 @@
   .config-list-item input[type=text]{flex:1;}
   .config-list-item .del{color:var(--lose); cursor:pointer; font-size:18px;}
 
-  .pill-tabs{display:flex; gap:8px; margin-bottom:16px; overflow-x:auto;}
+  .pill-tabs-wrap{position:relative; margin-bottom:16px;}
+  .pill-tabs{display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none;}
+  .pill-tabs::-webkit-scrollbar{display:none;}
   .pill-tabs .pill{padding:8px 16px; border-radius:20px; background:var(--card); border:1px solid var(--border); font-size:12.5px; font-weight:600; color:var(--text-dim); cursor:pointer; white-space:nowrap;}
   .pill-tabs .pill.active{background:var(--hero-gradient); border-color:transparent; color:#fff;}
+
+  .scroll-fade{position:absolute; top:0; bottom:0; width:34px; pointer-events:none; opacity:0; transition:opacity .2s;}
+  .scroll-fade.show{opacity:1;}
+  .scroll-fade.left{left:0; background:linear-gradient(to right, var(--bg) 10%, transparent);}
+  .scroll-fade.right{right:0; background:linear-gradient(to left, var(--bg) 10%, transparent);}
+  .scroll-fade.right::after{content:'›'; position:absolute; right:2px; top:50%; transform:translateY(-50%); font-size:18px; font-weight:800; color:var(--primary); pointer-events:none;}
+  .scroll-fade.left::after{content:'‹'; position:absolute; left:2px; top:50%; transform:translateY(-50%); font-size:18px; font-weight:800; color:var(--primary); pointer-events:none;}
 
   .toast{position:fixed; top:18px; left:50%; transform:translateX(-50%); background:var(--text); color:#fff; padding:12px 20px; border-radius:14px; font-size:13.5px; font-weight:600; z-index:100; opacity:0; transition:.25s; box-shadow:0 10px 25px rgba(0,0,0,.15); max-width:88vw; text-align:center;}
   .toast.show{opacity:1; top:26px;}
@@ -388,17 +398,22 @@
           <div class="ps"><div class="ps-label">ລໍຖ້າ</div><div class="ps-val" id="profile-pending">0</div></div>
         </div>
       </div>
+      <button class="btn secondary" id="adminNavBtn" style="display:none; margin-bottom:10px;">⚙️ ຫຼັງບ້ານ / ຕັ້ງຄ່າ</button>
       <button class="btn secondary" id="logoutBtn">🚪 ອອກຈາກລະບົບ</button>
     </div>
 
     <!-- ADMIN -->
     <div class="tab-panel" id="tab-admin" style="display:none;">
-      <div class="pill-tabs">
-        <div class="pill active" data-atab="brand">ແບຣນ/ຂໍ້ຄວາມ</div>
-        <div class="pill" data-atab="theme">ສີສັນ</div>
-        <div class="pill" data-atab="animals">ສັດ/ໄອຄອນ</div>
-        <div class="pill" data-atab="rounds">ຜົນງວດ</div>
-        <div class="pill" data-atab="users">ຜູ້ໃຊ້</div>
+      <div class="pill-tabs-wrap" id="adminPillWrap">
+        <div class="pill-tabs" id="adminPillTabs">
+          <div class="pill active" data-atab="brand">ແບຣນ/ຂໍ້ຄວາມ</div>
+          <div class="pill" data-atab="theme">ສີສັນ</div>
+          <div class="pill" data-atab="animals">ສັດ/ໄອຄອນ</div>
+          <div class="pill" data-atab="rounds">ຜົນງວດ</div>
+          <div class="pill" data-atab="users">ຜູ້ໃຊ້</div>
+        </div>
+        <div class="scroll-fade left" id="pillFadeLeft"></div>
+        <div class="scroll-fade right" id="pillFadeRight"></div>
       </div>
 
       <div id="atab-brand">
@@ -735,6 +750,7 @@ function doLogout(){
   goto('home');
 }
 document.getElementById('logoutBtn').addEventListener('click', doLogout);
+document.getElementById('adminNavBtn').addEventListener('click', ()=>goto('admin'));
 
 /* =================================================================
    INIT — runs once after login. Renders the app shell immediately
@@ -787,6 +803,7 @@ async function init(){
   const summary = (data && data.summary) || emptySummary();
 
   document.getElementById('sb-admin-link').style.display = currentUser.role === 'admin' ? 'flex' : 'none';
+  document.getElementById('adminNavBtn').style.display = currentUser.role === 'admin' ? 'block' : 'none';
 
   safe('theme', () => applyTheme());
   safe('brand', () => renderBrand());
@@ -1242,15 +1259,36 @@ document.getElementById('deleteBetBtn').addEventListener('click', async ()=>{
 /* =================================================================
    ADMIN — sub-tabs
 ================================================================= */
+
+/* ---- scroll fade indicator ສຳລັບ pill-tabs ຫຼັງບ້ານ ---- */
+function updatePillFade(){
+  const track = document.getElementById('adminPillTabs');
+  const fadeL = document.getElementById('pillFadeLeft');
+  const fadeR = document.getElementById('pillFadeRight');
+  if (!track || !fadeL || !fadeR) return;
+  const maxScroll = track.scrollWidth - track.clientWidth;
+  fadeL.classList.toggle('show', track.scrollLeft > 4);
+  fadeR.classList.toggle('show', track.scrollLeft < maxScroll - 4);
+}
+(function initPillFade(){
+  const track = document.getElementById('adminPillTabs');
+  if (!track) return;
+  track.addEventListener('scroll', updatePillFade);
+  window.addEventListener('resize', updatePillFade);
+  setTimeout(updatePillFade, 0);
+})();
+
 document.querySelectorAll('.pill-tabs .pill[data-atab]').forEach(p=>{
   p.addEventListener('click', ()=>{
     document.querySelectorAll('.pill-tabs .pill[data-atab]').forEach(x=>x.classList.remove('active'));
     p.classList.add('active');
+    p.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
     ['brand','theme','animals','rounds','users'].forEach(t=>{
       document.getElementById('atab-'+t).style.display = (t===p.dataset.atab) ? 'block' : 'none';
     });
     document.getElementById('atab-brand-save-wrap').style.display = (p.dataset.atab==='users') ? 'none' : 'block';
     if (p.dataset.atab === 'users') loadUsersList();
+    updatePillFade();
   });
 });
 
@@ -1324,7 +1362,7 @@ function renderRoundsList(){
   const el = document.getElementById('roundsList');
   const rounds = Array.isArray(ROUNDS) ? ROUNDS : [];
   el.innerHTML = rounds.length ? rounds.slice(0,10).map(r=>`
-    <div class="round-card">
+    <div class="round-card" data-round="${r.RoundID}">
       <div class="top">
         <span class="round-id">ງວດທີ ${r.RoundID}</span>
         <span class="datetime">${r.DateTime}</span>
@@ -1334,8 +1372,18 @@ function renderRoundsList(){
         <span class="del-round" data-round="${r.RoundID}">🗑️ ລຶບງວດນີ້</span>
       </div>
     </div>`).join('') : emptyHtml('ຍັງບໍ່ມີງວດ', 'ບັນທຶກຜົນງວດທຳອິດຂ້າງເທິງ');
+
+  el.querySelectorAll('.round-card').forEach(card=>{
+    card.addEventListener('click', (e)=>{
+      if (e.target.classList.contains('del-round')) return;
+      const roundId = card.dataset.round;
+      const round = rounds.find(r => String(r.RoundID) === String(roundId));
+      if (round) openRoundEdit(round);
+    });
+  });
   el.querySelectorAll('.del-round').forEach(btn=>{
     btn.addEventListener('click', async (e)=>{
+      e.stopPropagation();
       const roundId = e.target.dataset.round;
       try {
         await callServer('deleteRound', roundId);
@@ -1345,6 +1393,19 @@ function renderRoundsList(){
       } catch (err) { showToast('ລຶບລົ້ມເຫຼວ: ' + err.message); }
     });
   });
+}
+
+function openRoundEdit(round){
+  document.getElementById('rd-id').value = round.RoundID;
+  document.getElementById('rd-datetime').value = displayToIso(round.DateTime);
+  document.querySelectorAll('#rd-animal-picker .selected').forEach(x=>x.classList.remove('selected'));
+  const picker = document.getElementById('rd-animal-picker');
+  [round.Animal1, round.Animal2, round.Animal3].filter(Boolean).forEach(a=>{
+    const el = picker.querySelector(`[data-id="${CSS.escape(a)}"]`);
+    if (el) el.classList.add('selected');
+  });
+  showToast('ກຳລັງແກ້ໄຂງວດທີ ' + round.RoundID + ' — ແກ້ແລ້ວກົດ "ບັນທຶກຜົນງວດ" ໄດ້ເລີຍ');
+  window.scrollTo({top:0, behavior:'smooth'});
 }
 
 document.getElementById('saveRoundBtn').addEventListener('click', async ()=>{
