@@ -2,6 +2,8 @@
 <html lang="lo">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>ລະບົບຕິດຕາມການແທງ</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;600;700;800&family=Poppins:wght@500;600;700;800&display=swap');
@@ -51,6 +53,7 @@
     .fab{display:flex !important;}
   }
 
+  /* ---------- Brand / logo (bigger, no shadow) ---------- */
   .brand{display:flex; align-items:center; gap:12px; margin-bottom:30px; padding:0 6px;}
   .brand .logo-img{width:84px; height:84px; border-radius:22px; object-fit:cover; box-shadow:none;}
   .brand .name{font-weight:800; font-size:17px; line-height:1.2; color:var(--text);}
@@ -65,21 +68,23 @@
   .nav-item:not(.active):hover{background:var(--primary-soft); color:var(--text);}
 
   .sidebar-user{display:flex; align-items:center; gap:10px; padding:12px 10px; margin-top:auto; border-top:1px solid var(--border); padding-top:16px;}
-  .sidebar-user img{width:48px; height:48px; border-radius:50%; object-fit:cover; box-shadow:none;}
+  .sidebar-user img{width:48px; height:48px;border-radius:50%; object-fit:cover; box-shadow:none;}
   .sidebar-user .su-name{font-weight:700; font-size:13px; color:var(--text);}
   .sidebar-user .su-role{font-size:10.5px; color:var(--text-dim);}
 
+  /* ---------- Top bar (mobile) ---------- */
   .topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
   .topbar .brand{margin:0;}
   .topbar .brand .logo-img{width:70px; height:70px; border-radius:18px;}
   @media(min-width:900px){.topbar{display:none;}}
   .icon-btn{
-    width:52px; height:52px; border-radius:14px; background:var(--card);
+    width:52px; height:52px;border-radius:14px; background:var(--card);
     display:flex; align-items:center; justify-content:center; border:1px solid var(--border); color:var(--text);
     cursor:pointer; box-shadow:var(--shadow); overflow:hidden;
   }
   .icon-btn img{width:100%; height:100%; object-fit:cover;}
 
+  /* ---------- Error banner (inline, never blocks the app) ---------- */
   .error-banner{background:var(--lose-soft); border:1px solid #f6c6c6; color:#a13f3f; border-radius:16px; padding:14px 16px; font-size:12.5px; line-height:1.6; margin-bottom:16px; white-space:pre-wrap; text-align:left;}
   .error-banner .retry-btn{margin-top:10px; display:inline-block; background:var(--lose); color:#fff; font-weight:700; padding:8px 16px; border-radius:10px; cursor:pointer; font-size:12.5px;}
   .live-badge{display:inline-flex; align-items:center; gap:6px; font-size:11px; color:var(--text-dim); font-weight:600;}
@@ -87,6 +92,7 @@
   .live-badge .dot.syncing{background:var(--accent); animation:pulse 1s infinite;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
 
+  /* ---------- Hero card ---------- */
   .hero-card{
     background:var(--hero-gradient); border-radius:28px; padding:24px 22px; color:#fff;
     position:relative; overflow:hidden; box-shadow:0 20px 40px rgba(139,124,246,.32); margin-bottom:20px;
@@ -105,6 +111,7 @@
   .section-title{font-weight:700; font-size:16px; margin:24px 0 14px; display:flex; align-items:center; justify-content:space-between; color:var(--text);}
   .section-title .link{font-size:12.5px; color:var(--primary); font-weight:600; cursor:pointer;}
 
+  /* ---------- Transaction / round row (colorful icon style) ---------- */
   .tx-row{
     background:var(--card); border-radius:18px; padding:14px 16px; margin-bottom:10px;
     border:1px solid var(--border); box-shadow:var(--shadow);
@@ -138,19 +145,20 @@
   }
   .round-card .del-round{font-size:12px; color:var(--lose); cursor:pointer; font-weight:600;}
 
+  /* ---------- FAB (desktop only; mobile uses nav-fab) ---------- */
   .fab{
     display:none; position:fixed; right:24px; bottom:40px; width:58px; height:58px; border-radius:50%;
     background:var(--hero-gradient); border:none; color:#fff; align-items:center; justify-content:center;
     font-size:26px; box-shadow:0 10px 25px rgba(139,124,246,.45); cursor:pointer; z-index:40;
   }
 
+  /* ---------- Bottom nav with centered raised + ---------- */
   .bottom-nav{
     position:fixed; bottom:0; left:0; right:0; background:rgba(255,255,255,.97); backdrop-filter:blur(10px);
     display:flex; align-items:center; justify-content:space-around; padding:8px 4px calc(10px + env(safe-area-inset-bottom));
     border-radius:26px 26px 0 0; box-shadow:0 -8px 24px rgba(45,43,69,.08); z-index:39;
   }
-  .bottom-nav .item{display:flex; flex-direction:column; align-items:center; gap:5px; color:var(--text-dim); font-size:25px; font-weight:600; cursor:pointer; flex:1; padding:8px 0;}
-  .bottom-nav .item span{font-size:10.5px;}
+  .bottom-nav .item{display:flex; flex-direction:column; align-items:center; gap:4px; color:var(--text-dim); font-size:10px; font-weight:600; cursor:pointer; flex:1; padding:6px 0;}
   .bottom-nav .item span{font-size:9.5px;}
   .bottom-nav .item.active{color:var(--primary);}
   .nav-fab{
@@ -159,6 +167,7 @@
     box-shadow:0 10px 22px rgba(139,124,246,.5); cursor:pointer; border:4px solid #fff; flex-shrink:0;
   }
 
+  /* ---------- Modal ---------- */
   .overlay{position:fixed; inset:0; background:rgba(45,43,69,.35); display:none; align-items:flex-end; justify-content:center; z-index:60;}
   .overlay.show{display:flex;}
   @media(min-width:640px){.overlay{align-items:center;}}
@@ -218,6 +227,7 @@
   .logo-upload-btn{background:var(--primary-soft); color:var(--primary); font-weight:700; padding:10px 16px; border-radius:12px; font-size:13px; cursor:pointer; display:inline-block;}
   .hint{font-size:11.5px; color:var(--text-dim); margin-top:6px;}
 
+  /* ---------- Login screen ---------- */
   #loginScreen{
     position:fixed; inset:0; background:var(--hero-gradient); display:flex; align-items:center;
     justify-content:center; z-index:200; padding:20px;
@@ -235,9 +245,10 @@
   .login-error.show{display:block;}
   .login-hint{font-size:11px; color:var(--text-dim); margin-top:16px; line-height:1.6;}
 
+  /* ---------- Profile tab ---------- */
   .profile-card{background:var(--card); border-radius:var(--radius); padding:26px 20px; text-align:center; border:1px solid var(--border); box-shadow:var(--shadow); margin-bottom:20px;}
   .profile-avatar-wrap{position:relative; width:120px; height:120px; margin:0 auto 14px;}
-  .profile-avatar{width:120px; height:120px; border-radius:50%; object-fit:cover; box-shadow:none; border:3px solid var(--primary-soft);}
+  .profile-avatar{width:120px; height:120px;border-radius:50%; object-fit:cover; box-shadow:none; border:3px solid var(--primary-soft);}
   .profile-avatar-edit{position:absolute; bottom:0; right:0; width:32px; height:32px; border-radius:50%; background:var(--hero-gradient); color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px; cursor:pointer; border:3px solid #fff;}
   .profile-name{font-weight:800; font-size:18px; color:var(--text);}
   .profile-username{font-size:12.5px; color:var(--text-dim); margin-top:2px;}
@@ -254,27 +265,9 @@
   .user-row .ur-sub{font-size:11.5px; color:var(--text-dim);}
   .user-row .ur-actions{display:flex; gap:8px;}
   .user-row .ur-actions span{cursor:pointer; font-size:16px;}
-
-  .config-gate{position:fixed; inset:0; background:var(--bg); z-index:500; display:flex; align-items:center; justify-content:center; padding:24px;}
-  .config-gate .box{max-width:520px; background:var(--card); border-radius:24px; padding:30px 26px; box-shadow:var(--shadow); border:1px solid var(--border);}
-  .config-gate h2{font-size:18px; margin-bottom:10px;}
-  .config-gate p{font-size:13px; color:var(--text-dim); line-height:1.7; margin-bottom:14px;}
-  .config-gate code{background:var(--primary-soft); color:var(--primary); padding:2px 6px; border-radius:6px; font-size:12px;}
 </style>
 </head>
 <body>
-
-<!-- ============================ CONFIG GATE ============================ -->
-<!-- ຂຶ້ນສະເພາະຖ້າຍັງບໍ່ໄດ້ຕັ້ງ API_URL ຂ້າງລຸ່ມນີ້ໃຫ້ຖືກຕ້ອງ -->
-<div id="configGate" class="config-gate" style="display:none;">
-  <div class="box">
-    <h2>⚙️ ຍັງບໍ່ໄດ້ຕັ້ງຄ່າ API_URL</h2>
-    <p>ໄຟລ໌ນີ້ຕ້ອງເຊື່ອມກັບ Google Apps Script Backend ຂອງທ່ານກ່ອນ. ໃຫ້ໄປ Deploy Apps Script (Code.gs) ເປັນ Web App
-    (Execute as: Me, Who has access: Anyone) ແລ້ວຄັດລອກລິ້ງ <code>.../exec</code> ມາໃສ່ໃນຕົວແປ
-    <code>API_URL</code> ຢູ່ໃນຕົ້ນໄຟລ໌ <code>index.html</code> ນີ້ (ໃນ <code>&lt;script&gt;</code> ບ່ອນທຳອິດ).</p>
-    <p>ຫຼັງແກ້ແລ້ວ ໃຫ້ save ໄຟລ໌ ແລະ refresh ໜ້ານີ້ຄືນໃໝ່.</p>
-  </div>
-</div>
 
 <!-- ============================ LOGIN SCREEN ============================ -->
 <div id="loginScreen">
@@ -291,6 +284,7 @@
 </div>
 
 <div id="app" style="display:none;">
+  <!-- Sidebar (tablet/desktop) -->
   <div id="sidebar">
     <div class="brand">
       <img class="logo-img" id="sb-logo-img" alt="logo">
@@ -531,14 +525,14 @@
 
 <script>
 /* =================================================================
-   ★★★ ຕັ້ງຄ່າສຳຄັນ ★★★
-   ໃສ່ລິ້ງ /exec ຂອງ Google Apps Script deployment ຂອງທ່ານທີ່ນີ້
-   (Deploy > Manage deployments > ຄັດລອກ "Web app URL")
+   ⚠️ ຕັ້ງຄ່າສຳຄັນ — ໃສ່ URL /exec ຫຼ້າສຸດຂອງ Apps Script Backend ຂອງທ່ານ
+   ຢູ່ນີ້ (Deploy > Manage deployments > ກົດ copy ໃສ່ Web app URL)
+   ທຸກຄັ້ງທີ່ Deploy ໃໝ່, ຖ້າ URL ປ່ຽນ ໃຫ້ມາແກ້ຄ່ານີ້ນຳ
 ================================================================= */
 const API_URL = 'https://script.google.com/macros/s/AKfycbyOx7In6S4504BqcI04DwUB8jUH3s81SH4-ks2D4ihhd_1F_GJQQM4ge1zWUwpI9zrV/exec';
 
 /* =================================================================
-   ໂລໂກ້ / ໂປຟາຍ ຄ່າເລີ່ມຕົ້ນ (ຝັງໄວ້ໃນໂຕແອັບ)
+   ໂລໂກ້ຄ່າເລີ່ມຕົ້ນ (ຝັງໄວ້ໃນໂຕແອັບ, ໃຊ້ຖ້າຍັງບໍ່ໄດ້ອັບໂຫຼດໂລໂກ້ໃໝ່)
 ================================================================= */
 const DEFAULT_LOGO = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
@@ -549,6 +543,7 @@ const DEFAULT_LOGO = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
   <text x="50" y="65" font-size="46" text-anchor="middle">🦀</text>
 </svg>`);
 
+/* ============ ໂປຟາຍຄ່າເລີ່ມຕົ້ນ (ຖ້າຄົນນັ້ນຍັງບໍ່ໄດ້ອັບໂຫຼດຮູບ) ============ */
 const DEFAULT_AVATAR = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
@@ -559,6 +554,9 @@ const DEFAULT_AVATAR = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
   <path d="M20 88c4-22 20-32 30-32s26 10 30 32" fill="#fff" opacity="0.9"/>
 </svg>`);
 
+/* =================================================================
+   COLOR PALETTE FOR ANIMAL ICONS
+================================================================= */
 const ICON_GRADIENTS = [
   'linear-gradient(135deg,#FF9F68,#FF6B6B)',
   'linear-gradient(135deg,#8B7CF6,#B98CF0)',
@@ -583,54 +581,86 @@ let BETS = [];
 let ROUNDS = [];
 let currentStatus = 'PENDING';
 let editingBetId = null;
-let currentUser = null;
+let currentUser = null;      // { id, username, displayName, avatar, role }
 let editingUserId = null;
 let selectedUserRole = 'user';
+let IS_LIVE = false;          // flips to true the first time a real fetch() succeeds
 
 /* =================================================================
-   BACKEND BRIDGE — fetch() ໄປຫາ Google Apps Script /exec URL
-   ★ ໃຊ້ Content-Type: text/plain ຢ່າງເຂັ້ມງວດ ເພື່ອຫຼີກລ່ຽງ CORS
-     preflight (ຖ້າໃຊ້ application/json, browser ຈະສົ່ງ OPTIONS
-     ກ່ອນ ແລະ Apps Script ຈະຕອບ preflight ນັ້ນບໍ່ຖືກ ເຮັດໃຫ້ fetch ລົ້ມເຫຼວ)
-   ★ action ທີ່ໃຊ້ id ໂດຍກົງ (ບໍ່ຜ່ານ payload): deleteBet, deleteRound, deleteUser
+   BACKEND BRIDGE — talks to the Apps Script /exec URL over fetch().
+   ---------------------------------------------------------------
+   ສຳຄັນ: ໃຊ້ Content-Type: text/plain ສະເໝີ (ບໍ່ແມ່ນ application/json)
+   ເພື່ອໃຫ້ browser ຖືວ່ານີ້ເປັນ "simple request" ແລະ ບໍ່ສົ່ງ preflight
+   (OPTIONS) ໄປຫາ Apps Script ກ່ອນ — ເພາະ Apps Script ບໍ່ຮອງຮັບການຕອບ
+   preflight, ຖ້າສົ່ງ application/json ຄຳຂໍຈະຖືກ browser ບລັອກດ້ວຍ CORS.
+   ຝັ່ງ Code.gs ຈະ JSON.parse(body) ເອງ ໂດຍບໍ່ສົນໃຈ header content-type.
+
+   ID-only actions (deleteBet/deleteRound/deleteUser) ຮັບແຕ່ໂຕເລກ/string
+   ໂດຍກົງຈາກຈຸດທີ່ຮ້ອງໃຊ້ (ຄືເກົ່າ) — ຟັງຊັນນີ້ຫໍ່ໃຫ້ເປັນ {id:...} ໃຫ້ເອງ
+   ກ່ອນສົ່ງອອກ ເພື່ອບໍ່ຕ້ອງແກ້ໂຄ້ດຈຸດອື່ນໆທັງໝົດ.
 ================================================================= */
-const ID_ACTIONS = ['deleteBet', 'deleteRound', 'deleteUser'];
+const ID_ONLY_ACTIONS = ['deleteBet', 'deleteRound', 'deleteUser'];
 
-async function callServer(action, arg){
-  const body = { action: action };
-  if (ID_ACTIONS.includes(action)) {
-    body.id = arg;
-  } else if (arg !== undefined) {
-    body.payload = arg;
-  }
-  let res;
-  try {
-    res = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(body)
-    });
-  } catch (networkErr) {
-    throw new Error(action + '() ຕິດຕໍ່ Backend ບໍ່ໄດ້: ' + networkErr.message + ' (ກວດ API_URL ຫຼືການເຊື່ອມຕໍ່ອິນເຕີເນັດ)');
-  }
-  if (!res.ok) {
-    throw new Error(action + '() Backend ຕອບກັບ HTTP ' + res.status);
-  }
-  let data;
-  try {
-    data = await res.json();
-  } catch (parseErr) {
-    throw new Error(action + '() ອ່ານຄຳຕອບຈາກ Backend ບໍ່ໄດ້ (ບໍ່ແມ່ນ JSON): ' + parseErr.message);
-  }
-  return data;
+function callServer(fn, arg){
+  let payload = ID_ONLY_ACTIONS.indexOf(fn) !== -1 ? { id: arg } : arg;
+  if (payload === undefined) payload = {};
+
+  return fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: fn, payload: payload })
+  })
+  .then(res => {
+    if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText);
+    return res.json();
+  })
+  .then(data => { IS_LIVE = true; return data; })
+  .catch(err => {
+    IS_LIVE = false;
+    console.error('callServer(' + fn + ') ລົ້ມເຫຼວ, ໃຊ້ຂໍ້ມູນ Demo ແທນ:', err);
+    return demoFallback(fn, [payload]);
+  });
 }
 
-function isApiUrlConfigured(){
-  return API_URL && API_URL.indexOf('ໃສ່_DEPLOYMENT_ID') === -1 && /^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(API_URL);
+/* =================================================================
+   DEMO FALLBACK — kicks in automatically if API_URL is unreachable
+   (wrong URL, not deployed yet, deployment set to private, etc.),
+   so the page still renders something instead of a blank screen —
+   this makes it obvious you're in "demo" vs "live" mode.
+================================================================= */
+function demoFallback(fn, args){
+  const demoAnimals = [
+    {Id:'crab',Name:'ปู',Icon:'🦀',Order:1},{Id:'fish',Name:'ปา',Icon:'🐟',Order:2},
+    {Id:'gourd',Name:'ນ້ຳເຕົ້າ',Icon:'🏺',Order:3},{Id:'tiger',Name:'ເສືອ',Icon:'🐯',Order:4},
+    {Id:'rooster',Name:'ໄກ່',Icon:'🐓',Order:5},{Id:'shrimp',Name:'ກຸ້ງ',Icon:'🦐',Order:6}
+  ];
+  const demoBets = [
+    {ID:1,Timestamp:new Date(),RoundID:'36260149',RoundDateTime:'08/09/2026 13:05',Animals:'crab,rooster,fish',Stake:40000,Status:'WIN',Payout:120000,Agent:'BCELONE',Username:'admin'},
+    {ID:2,Timestamp:new Date(),RoundID:'36260148',RoundDateTime:'08/09/2026 12:05',Animals:'gourd,tiger',Stake:10000,Status:'LOSE',Payout:0,Agent:'BCELONE',Username:'admin'}
+  ];
+  if (fn==='login') {
+    const p = args[0] || {};
+    if (p.username === 'admin' && p.password === '1234') {
+      return { ok:true, user:{ id:1, username:'admin', displayName:'ແອັດມິນ (Demo)', avatar:'', role:'admin' } };
+    }
+    return { error: 'ໂໝດ Demo (ຍັງເຊື່ອມ Backend ບໍ່ໄດ້): ໃຊ້ admin / 1234' };
+  }
+  if (fn==='getUsers') return [{id:1, username:'admin', displayName:'ແອັດມິນ (Demo)', avatar:'', role:'admin', createdAt:new Date()}];
+  if (fn==='saveUser' || fn==='deleteUser' || fn==='uploadAvatar') return {ok:true, url:''};
+  if (fn==='getAll') return {
+    config: defaultConfigJs(), animals: demoAnimals, bets: demoBets, rounds: [],
+    summary: {income:120000, expense:10000, net:110000, winCount:1, loseCount:1, pendingCount:0, byDay:[{day:'2026-09-08', income:120000, expense:10000}], byAnimal:[{animal:'crab',count:1},{animal:'fish',count:1}]}
+  };
+  if (fn==='getConfig') return {...defaultConfigJs()};
+  if (fn==='getAnimals') return demoAnimals;
+  if (fn==='getBets') return demoBets;
+  if (fn==='getRounds') return [];
+  if (fn==='getSummary') return {income:120000, expense:10000, net:110000, winCount:1, loseCount:1, pendingCount:0, byDay:[{day:'2026-09-08', income:120000, expense:10000}], byAnimal:[]};
+  if (fn==='uploadLogo') return {ok:true, url:''};
+  return {ok:true};
 }
-
 function defaultConfigJs(){
-  return { appTitle:'ປູປາເຕົ້າມະທາໂຊກ', appSubtitle:'ລະບົບຕິດຕາມສ່ວນຕົວ', logoIcon:'🎯', logoUrl:'',
+  return { appTitle:'ປູປາເຕົ້າມະທາໂຊກ (Demo)', appSubtitle:'ຍັງບໍ່ໄດ້ເຊື່ອມ Backend', logoIcon:'🎯', logoUrl:'',
     themePrimary:'#8B7CF6', themeAccent:'#FFA94D', themeWin:'#2FB88B', themeLose:'#F26D6D',
     homeGreeting:'ສະບາຍດີ, ນີ້ແມ່ນສະຫຼຸບຂອງເຈົ້າມື້ນີ້', labelIncome:'ລາຍຮັບ (ຖືກ)', labelExpense:'ລາຍຈ່າຍ (ບໍ່ຖືກ)',
     labelNet:'ກຳໄລ / ຂາດທຶນ', payoutMultiplier:30 };
@@ -638,19 +668,15 @@ function defaultConfigJs(){
 function emptySummary(){ return {income:0, expense:0, net:0, winCount:0, loseCount:0, pendingCount:0, byRound:[], byDay:[], byAnimal:[]}; }
 
 /* =================================================================
-   BOOTSTRAP
+   BOOTSTRAP — load just enough branding to render the login screen,
+   then wait for the user to log in before pulling any bet data.
 ================================================================= */
 async function bootstrap(){
-  if (!isApiUrlConfigured()) {
-    document.getElementById('configGate').style.display = 'flex';
-    return;
-  }
   try {
     const cfg = await callServer('getConfig');
     CONFIG = cfg && !cfg.error ? cfg : defaultConfigJs();
   } catch (e) {
     CONFIG = defaultConfigJs();
-    showToast('ຕິດຕໍ່ Backend ບໍ່ໄດ້: ' + e.message);
   }
   applyTheme();
   const src = currentLogoSrc();
@@ -687,11 +713,9 @@ async function doLogin(){
     if (res && res.error) { showLoginError(res.error); return; }
     if (res && res.ok) {
       currentUser = res.user;
-      sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
       hideLoginError();
       document.getElementById('loginScreen').classList.add('hide');
       document.getElementById('app').style.display = 'flex';
-      showToast('ກຳລັງໂຫຼດຂໍ້ມູນ... ⏳');
       await init();
     }
   } catch (err) {
@@ -703,7 +727,6 @@ async function doLogin(){
 
 function doLogout(){
   currentUser = null;
-  sessionStorage.removeItem('currentUser');
   BETS = []; ROUNDS = [];
   document.getElementById('app').style.display = 'none';
   document.getElementById('loginScreen').classList.remove('hide');
@@ -714,11 +737,14 @@ function doLogout(){
 document.getElementById('logoutBtn').addEventListener('click', doLogout);
 
 /* =================================================================
-   INIT
+   INIT — runs once after login. Renders the app shell immediately
+   with whatever we have, and updates in place once data arrives.
 ================================================================= */
 function safe(label, fn){
   try { fn(); }
-  catch(e){ console.error(label, e); }
+  catch(e){
+    console.error(label, e);
+  }
 }
 
 function setSyncing(on){
@@ -772,8 +798,9 @@ async function init(){
   safe('animal-pickers', () => renderAnimalPickers());
   if (currentUser.role === 'admin') safe('admin-forms', () => renderAdminForms());
 
-  document.getElementById('liveLabel').textContent = 'ເຊື່ອມຕໍ່ Backend ແລ້ວ';
-  document.getElementById('liveLabelHero').textContent = 'ເຊື່ອມຕໍ່ Backend ແລ້ວ';
+  const liveTxt = IS_LIVE ? 'ເຊື່ອມຕໍ່ Backend ແລ້ວ' : 'ໂໝດ Demo (ຍັງເຊື່ອມ Backend ບໍ່ໄດ້)';
+  document.getElementById('liveLabel').textContent = liveTxt;
+  document.getElementById('liveLabelHero').textContent = liveTxt;
 
   if (errors.length) showErrorBanner(errors.join('\n'));
   else hideErrorBanner();
@@ -782,14 +809,15 @@ async function init(){
 
   if (!window.__pollingStarted) {
     window.__pollingStarted = true;
-    setInterval(refreshData, 20000);
+    setInterval(refreshData, 20000); // light polling for "realtime" sync
   }
 }
 
 function showErrorBanner(msg){
   const box = document.getElementById('errorBanner');
+  const mode = IS_LIVE ? '' : '\n\n(ໝາຍເຫດ: ຍັງເຊື່ອມຕໍ່ Google Apps Script Backend ບໍ່ໄດ້ — ຂໍ້ມູນທີ່ເຫັນເປັນ Demo data. ກວດ API_URL ຢູ່ເທິງສຸດຂອງໄຟລ໌ນີ້ ແລະ ການຕັ້ງຄ່າ Deploy ຝັ່ງ Apps Script)';
   box.style.display = 'block';
-  box.innerHTML = `⚠️ ໂຫຼດຂໍ້ມູນບາງສ່ວນບໍ່ສຳເລັດ:\n${msg}\n\n➡ ກວດ: 1) API_URL ຖືກຕ້ອງບໍ່ 2) Deploy > New version ຫຼັງແກ້ Code.gs ແລ້ວບໍ່ 3) Execute as: Me, Anyone\n<span class="retry-btn" onclick="init()">ລອງໃໝ່ອີກຄັ້ງ</span>`;
+  box.innerHTML = `⚠️ ໂຫຼດຂໍ້ມູນບາງສ່ວນບໍ່ສຳເລັດ:\n${msg}${mode}\n\n➡ ວິທີແກ້ໄຂ: ໄປ Apps Script Editor > ຟັງຊັນ "diagnose" > Run > ເບິ່ງ Execution log, ຫຼືເປີດ Console (F12) ຂອງໜ້ານີ້ເພື່ອເບິ່ງລາຍລະອຽດ error<br><span class="retry-btn" onclick="init()">ລອງໃໝ່ອີກຄັ້ງ</span>`;
 }
 function hideErrorBanner(){
   document.getElementById('errorBanner').style.display = 'none';
@@ -860,7 +888,6 @@ function renderUserChrome(){
   tbAvatar.onerror = function(){ this.onerror=null; this.src = DEFAULT_AVATAR; };
   tbAvatar.src = src;
 }
-
 /* =================================================================
    HELPERS
 ================================================================= */
@@ -872,6 +899,7 @@ function showToast(msg){
   setTimeout(()=>t.classList.remove('show'), 2400);
 }
 
+/* ---- datetime-local <-> display string (DD/MM/YYYY HH:mm) helpers ---- */
 function pad2(n){ return String(n).padStart(2,'0'); }
 function isoLocalFromDate(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())+'T'+pad2(d.getHours())+':'+pad2(d.getMinutes()); }
 function isoToDisplay(iso){
@@ -1093,7 +1121,10 @@ document.querySelectorAll('[data-goto]').forEach(el=>el.addEventListener('click'
 document.getElementById('menuBtn').addEventListener('click', ()=>goto('profile'));
 
 /* =================================================================
-   ANIMAL PICKERS
+   ANIMAL PICKERS — rebuilt fresh from the CURRENT ANIMALS array every
+   time this runs (init, and after admin saves changes), and every
+   data-id is guaranteed non-empty so selections can never be saved
+   as blank values.
 ================================================================= */
 function renderAnimalPickers(){
   ['bet-animal-picker','rd-animal-picker'].forEach(id=>{
@@ -1106,6 +1137,7 @@ function renderAnimalPickers(){
     el.querySelectorAll('.animal-pick').forEach(p=>{
       p.addEventListener('click', ()=>{
         if (id === 'rd-animal-picker') {
+          // exactly 3 selectable for round result
           const selected = el.querySelectorAll('.selected');
           if (!p.classList.contains('selected') && selected.length >= 3) return;
         }
@@ -1127,6 +1159,7 @@ function getSelectedAnimals(pickerId){
 function openBetModal(id){
   editingBetId = id || null;
   const bet = id ? (BETS||[]).find(b=>Number(b.ID)===id) : null;
+  // ຄົນທຳມະດາເປີດແກ້ໄຂໄດ້ສະເພາະລາຍການຂອງໂຕເອງ
   if (bet && currentUser.role !== 'admin' && String(bet.Username||'').toLowerCase() !== currentUser.username.toLowerCase()) {
     showToast('ທ່ານເບິ່ງໄດ້ສະເພາະລາຍການຂອງໂຕເອງເທົ່ານັ້ນ');
     return;
@@ -1140,6 +1173,7 @@ function openBetModal(id){
   document.getElementById('bet-note').value = bet ? bet.Note : '';
   currentStatus = bet ? String(bet.Status).toUpperCase() : 'PENDING';
   updateStatusPicker();
+  // rebuild the picker fresh so it always matches the latest ANIMALS list
   renderAnimalPickers();
   const picker = document.getElementById('bet-animal-picker');
   if (bet) String(bet.Animals||'').split(',').filter(Boolean).forEach(a=>{
@@ -1195,7 +1229,6 @@ document.getElementById('saveBetBtn').addEventListener('click', async ()=>{
 
 document.getElementById('deleteBetBtn').addEventListener('click', async ()=>{
   if (!editingBetId) return;
-  if (!confirm('ຢືນຢັນລຶບລາຍການນີ້? ການລຶບຈະບໍ່ສາມາດກູ້ຄືນໄດ້')) return;
   try {
     await callServer('deleteBet', editingBetId);
     showToast('ລຶບແລ້ວ 🗑️');
@@ -1304,7 +1337,6 @@ function renderRoundsList(){
   el.querySelectorAll('.del-round').forEach(btn=>{
     btn.addEventListener('click', async (e)=>{
       const roundId = e.target.dataset.round;
-      if (!confirm('ຢືນຢັນລຶບງວດທີ ' + roundId + '? ຜົນການຕັດງວດ (ຖືກ/ບໍ່ຖືກ) ຈະບໍ່ຖືກຄືນຄ່າ')) return;
       try {
         await callServer('deleteRound', roundId);
         ROUNDS = await callServer('getRounds');
@@ -1457,7 +1489,6 @@ document.getElementById('saveUserBtn').addEventListener('click', async ()=>{
 
 document.getElementById('deleteUserBtn').addEventListener('click', async ()=>{
   if (!editingUserId) return;
-  if (!confirm('ຢືນຢັນລຶບຜູ້ໃຊ້ນີ້? ປະຫວັດການແທງຂອງລາວຈະຍັງຄ້າງຢູ່ ແຕ່ຈະ login ບໍ່ໄດ້ອີກ')) return;
   if (currentUser && Number(currentUser.id) === Number(editingUserId)) {
     showToast('ລຶບບັນຊີຕົນເອງບໍ່ໄດ້ ໃນຂະນະທີ່ Login ຢູ່');
     return;
@@ -1476,17 +1507,7 @@ document.getElementById('deleteUserBtn').addEventListener('click', async ()=>{
 /* =================================================================
    BOOT
 ================================================================= */
-bootstrap().then(async ()=>{
-  const saved = sessionStorage.getItem('currentUser');
-  if (saved && isApiUrlConfigured()) {
-    try {
-      currentUser = JSON.parse(saved);
-      document.getElementById('loginScreen').classList.add('hide');
-      document.getElementById('app').style.display = 'flex';
-      await init();
-    } catch(e) { sessionStorage.removeItem('currentUser'); }
-  }
-});
+bootstrap();
 </script>
 </body>
 </html>
