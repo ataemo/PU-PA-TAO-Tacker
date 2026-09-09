@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+<meta charset="UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;600;700;800&family=Poppins:wght@500;600;700;800&display=swap');
+
+  :root{
+    --primary:#8B7CF6;
+    --primary-2:#B98CF0;
+    --pink:#F48FC0;
+    --primary-soft:#EFEBFF;
+    --accent:#FFA94D;
+    --accent-soft:#FFF1DC;
+    --win:#2FB88B;
+    --win-soft:#E3F7EF;
+    --lose:#F26D6D;
+    --lose-soft:#FDEAEA;
+    --bg:#F6F5FC;
+    --card:#FFFFFF;
+    --card-2:#FBFAFF;
+    --text:#2D2B45;
+    --text-dim:#8B89A3;
+    --border:#ECEAF6;
+    --radius:22px;
+    --shadow:0 8px 26px rgba(139,124,246,.12);
+    --hero-gradient:linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 40%, var(--pink) 72%, var(--accent) 100%);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Noto Sans Lao','Poppins',sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.num{font-family:'Poppins','Noto Sans Lao',sans-serif;}
+
+  /* ---------- App shell ---------- */
+  #app{max-width:1200px; margin:0 auto; display:flex; min-height:100vh;}
+  #sidebar{
+    display:none; width:250px; padding:28px 18px; flex-direction:column; gap:6px;
+    border-right:1px solid var(--border);
+  }
+  #main{flex:1; padding:16px 14px 100px; min-width:0;}
+  @media(min-width:900px){
+    #sidebar{display:flex;}
+    #main{padding:32px 40px;}
+    .bottom-nav{display:none !important;}
+    .fab{display:flex !important;}
+  }
+
+  .brand{display:flex; align-items:center; gap:12px; margin-bottom:30px; padding:0 6px;}
+  .brand .logo-img{width:84px; height:84px; border-radius:22px; object-fit:cover; box-shadow:none;}
+  .brand .name{font-weight:800; font-size:17px; line-height:1.2; color:var(--text);}
+  .brand .sub{font-size:11.5px; color:var(--text-dim);}
+
+  .nav-item{
+    display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:14px;
+    color:var(--text-dim); font-weight:600; cursor:pointer; font-size:14.5px;
+    transition:.15s;
+  }
+  .nav-item.active{background:var(--hero-gradient); color:#fff; box-shadow:0 8px 18px rgba(139,124,246,.35);}
+  .nav-item:not(.active):hover{background:var(--primary-soft); color:var(--text);}
+
+  .sidebar-user{display:flex; align-items:center; gap:10px; padding:12px 10px; margin-top:auto; border-top:1px solid var(--border); padding-top:16px;}
+  .sidebar-user img{width:48px; height:48px; border-radius:50%; object-fit:cover; box-shadow:none;}
+  .sidebar-user .su-name{font-weight:700; font-size:13px; color:var(--text);}
+  .sidebar-user .su-role{font-size:10.5px; color:var(--text-dim);}
+
+  .topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
+  .topbar .brand{margin:0;}
+  .topbar .brand .logo-img{width:70px; height:70px; border-radius:18px;}
+  @media(min-width:900px){.topbar{display:none;}}
+  .icon-btn{
+    width:52px; height:52px; border-radius:14px; background:var(--card);
+    display:flex; align-items:center; justify-content:center; border:1px solid var(--border); color:var(--text);
+    cursor:pointer; box-shadow:var(--shadow); overflow:hidden;
+  }
+  .icon-btn img{width:100%; height:100%; object-fit:cover;}
+
+  .error-banner{background:var(--lose-soft); border:1px solid #f6c6c6; color:#a13f3f; border-radius:16px; padding:14px 16px; font-size:12.5px; line-height:1.6; margin-bottom:16px; white-space:pre-wrap; text-align:left;}
+  .error-banner .retry-btn{margin-top:10px; display:inline-block; background:var(--lose); color:#fff; font-weight:700; padding:8px 16px; border-radius:10px; cursor:pointer; font-size:12.5px;}
+  .live-badge{display:inline-flex; align-items:center; gap:6px; font-size:11px; color:var(--text-dim); font-weight:600;}
+  .live-badge .dot{width:7px; height:7px; border-radius:50%; background:var(--win);}
+  .live-badge .dot.syncing{background:var(--accent); animation:pulse 1s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+  .hero-card{
+    background:var(--hero-gradient); border-radius:28px; padding:24px 22px; color:#fff;
+    position:relative; overflow:hidden; box-shadow:0 20px 40px rgba(139,124,246,.32); margin-bottom:20px;
+  }
+  .hero-card::after{content:''; position:absolute; right:-40px; top:-40px; width:160px; height:160px; border-radius:50%; background:rgba(255,255,255,.12);}
+  .hero-card::before{content:''; position:absolute; left:-30px; bottom:-50px; width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,.08);}
+  .hero-top{display:flex; align-items:center; justify-content:space-between; font-size:12.5px; font-weight:600; opacity:.9; margin-bottom:10px; position:relative; z-index:1;}
+  .hero-pill{background:rgba(255,255,255,.22); padding:5px 12px; border-radius:20px; font-size:11px;}
+  .hero-num{font-size:32px; font-weight:800; position:relative; z-index:1;}
+  .hero-sub{font-size:12.5px; opacity:.85; margin-bottom:18px; position:relative; z-index:1;}
+  .hero-chips{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; position:relative; z-index:1;}
+  .hero-chip{background:rgba(255,255,255,.18); border-radius:16px; padding:10px 12px; backdrop-filter:blur(4px);}
+  .hero-chip .hc-label{font-size:11px; opacity:.85; margin-bottom:4px;}
+  .hero-chip .hc-val{font-size:15px; font-weight:800;}
+
+  .section-title{font-weight:700; font-size:16px; margin:24px 0 14px; display:flex; align-items:center; justify-content:space-between; color:var(--text);}
+  .section-title .link{font-size:12.5px; color:var(--primary); font-weight:600; cursor:pointer;}
+
+  .tx-row{
+    background:var(--card); border-radius:18px; padding:14px 16px; margin-bottom:10px;
+    border:1px solid var(--border); box-shadow:var(--shadow);
+    display:flex; align-items:center; gap:12px; cursor:pointer;
+  }
+  .tx-icon{width:46px; height:46px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:21px; flex-shrink:0; color:#fff; box-shadow:0 6px 14px rgba(0,0,0,.1);}
+  .tx-mid{flex:1; min-width:0;}
+  .tx-title{font-weight:700; font-size:14.5px; color:var(--text);}
+  .tx-sub{font-size:11.5px; color:var(--text-dim); margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .tx-right{text-align:right; flex-shrink:0;}
+  .tx-amount{font-weight:800; font-size:14.5px; display:block; margin-bottom:4px;}
+  .tx-amount.WIN{color:var(--win);}
+  .tx-amount.LOSE{color:var(--lose);}
+  .tx-amount.PENDING{color:var(--text-dim);}
+  .status-badge{font-size:10.5px; padding:3px 10px; border-radius:20px; font-weight:700; display:inline-block;}
+  .status-badge.WIN{background:var(--win-soft); color:var(--win);}
+  .status-badge.LOSE{background:var(--lose-soft); color:var(--lose);}
+  .status-badge.PENDING{background:var(--accent-soft); color:var(--accent);}
+
+  .round-card{
+    background:var(--card); border-radius:18px; padding:16px 18px; margin-bottom:12px;
+    border:1px solid var(--border); box-shadow:var(--shadow);
+  }
+  .round-card .top{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+  .round-card .round-id{font-size:12px; color:var(--text-dim); font-weight:700;}
+  .round-card .datetime{font-size:12px; color:var(--text-dim);}
+  .animals-row{display:flex; gap:8px; margin-bottom:6px; flex-wrap:wrap;}
+  .animal-chip{
+    width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:17px;
+    color:#fff; box-shadow:0 4px 10px rgba(0,0,0,.1);
+  }
+  .round-card .del-round{font-size:12px; color:var(--lose); cursor:pointer; font-weight:600;}
+
+  .fab{
+    display:none; position:fixed; right:24px; bottom:40px; width:58px; height:58px; border-radius:50%;
+    background:var(--hero-gradient); border:none; color:#fff; align-items:center; justify-content:center;
+    font-size:26px; box-shadow:0 10px 25px rgba(139,124,246,.45); cursor:pointer; z-index:40;
+  }
+
+  .bottom-nav{
+    position:fixed; bottom:0; left:0; right:0; background:rgba(255,255,255,.97); backdrop-filter:blur(10px);
+    display:flex; align-items:center; justify-content:space-around; padding:8px 4px calc(10px + env(safe-area-inset-bottom));
+    border-radius:26px 26px 0 0; box-shadow:0 -8px 24px rgba(45,43,69,.08); z-index:39;
+  }
+  .bottom-nav .item{display:flex; flex-direction:column; align-items:center; gap:4px; color:var(--text-dim); font-size:10px; font-weight:600; cursor:pointer; flex:1; padding:6px 0;}
+  .bottom-nav .item span{font-size:9.5px;}
+  .bottom-nav .item.active{color:var(--primary);}
+  .nav-fab{
+    width:52px; height:52px; border-radius:50%; background:var(--hero-gradient); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:26px; margin-top:-28px;
+    box-shadow:0 10px 22px rgba(139,124,246,.5); cursor:pointer; border:4px solid #fff; flex-shrink:0;
+  }
+
+  .overlay{position:fixed; inset:0; background:rgba(45,43,69,.35); display:none; align-items:flex-end; justify-content:center; z-index:60;}
+  .overlay.show{display:flex;}
+  @media(min-width:640px){.overlay{align-items:center;}}
+  .sheet{
+    background:var(--bg); width:100%; max-width:480px; border-radius:24px 24px 0 0; padding:22px 20px 26px;
+    max-height:88vh; overflow-y:auto; border:1px solid var(--border);
+  }
+  @media(min-width:640px){.sheet{border-radius:24px;}}
+  .sheet h3{font-size:17px; margin-bottom:16px; color:var(--text);}
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:12.5px; color:var(--text-dim); margin-bottom:6px; font-weight:600;}
+  .field input, .field select, .field textarea{
+    width:100%; background:var(--card); border:1px solid var(--border); color:var(--text);
+    padding:11px 13px; border-radius:12px; font-size:14.5px; font-family:inherit;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{outline:2px solid var(--primary-soft); border-color:var(--primary);}
+  .animal-picker{display:flex; flex-wrap:wrap; gap:10px;}
+  .animal-pick{
+    width:54px; height:54px; border-radius:16px; display:flex; align-items:center;
+    justify-content:center; font-size:24px; cursor:pointer; border:3px solid transparent; color:#fff; position:relative;
+  }
+  .animal-pick.selected{border-color:var(--text); box-shadow:0 0 0 3px rgba(45,43,69,.08);}
+  .animal-pick .pick-name{position:absolute; bottom:-16px; left:50%; transform:translateX(-50%); font-size:9px; color:var(--text-dim); white-space:nowrap; font-weight:600;}
+  .status-picker{display:flex; gap:8px;}
+  .status-pick{flex:1; text-align:center; padding:10px; border-radius:12px; background:var(--card); cursor:pointer; font-weight:700; font-size:13px; border:2px solid var(--border); color:var(--text-dim);}
+  .status-pick.WIN.sel{border-color:var(--win); color:var(--win); background:var(--win-soft);}
+  .status-pick.LOSE.sel{border-color:var(--lose); color:var(--lose); background:var(--lose-soft);}
+  .status-pick.PENDING.sel{border-color:var(--accent); color:var(--accent); background:var(--accent-soft);}
+  .btn{
+    width:100%; padding:14px; border-radius:14px; border:none; font-weight:700; font-size:15px; cursor:pointer;
+    background:var(--hero-gradient); color:#fff; margin-top:6px;
+  }
+  .btn:active{opacity:.85;}
+  .btn:disabled{opacity:.55; cursor:not-allowed;}
+  .btn.secondary{background:var(--card); color:var(--text); border:1px solid var(--border);}
+  .btn.danger{background:var(--lose-soft); color:var(--lose);}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+
+  .empty{text-align:center; padding:40px 20px; color:var(--text-dim);}
+  .empty .e-icon{font-size:40px; margin-bottom:10px;}
+
+  .chart-card{background:var(--card); border-radius:var(--radius); padding:18px; margin-bottom:18px; border:1px solid var(--border); box-shadow:var(--shadow);}
+
+  .config-list-item{display:flex; align-items:center; gap:10px; background:var(--card); padding:10px 12px; border-radius:12px; margin-bottom:8px; border:1px solid var(--border);}
+  .config-list-item input[type=text]{flex:1;}
+  .config-list-item .del{color:var(--lose); cursor:pointer; font-size:18px;}
+
+  .pill-tabs{display:flex; gap:8px; margin-bottom:16px; overflow-x:auto;}
+  .pill-tabs .pill{padding:8px 16px; border-radius:20px; background:var(--card); border:1px solid var(--border); font-size:12.5px; font-weight:600; color:var(--text-dim); cursor:pointer; white-space:nowrap;}
+  .pill-tabs .pill.active{background:var(--hero-gradient); border-color:transparent; color:#fff;}
+
+  .toast{position:fixed; top:18px; left:50%; transform:translateX(-50%); background:var(--text); color:#fff; padding:12px 20px; border-radius:14px; font-size:13.5px; font-weight:600; z-index:100; opacity:0; transition:.25s; box-shadow:0 10px 25px rgba(0,0,0,.15); max-width:88vw; text-align:center;}
+  .toast.show{opacity:1; top:26px;}
+
+  .logo-upload-row{display:flex; align-items:center; gap:14px; margin-bottom:6px;}
+  .logo-preview{width:64px; height:64px; border-radius:18px; object-fit:cover; border:1px solid var(--border); box-shadow:none;}
+  .logo-upload-btn{background:var(--primary-soft); color:var(--primary); font-weight:700; padding:10px 16px; border-radius:12px; font-size:13px; cursor:pointer; display:inline-block;}
+  .hint{font-size:11.5px; color:var(--text-dim); margin-top:6px;}
+
+  #loginScreen{
+    position:fixed; inset:0; background:var(--hero-gradient); display:flex; align-items:center;
+    justify-content:center; z-index:200; padding:20px;
+  }
+  #loginScreen.hide{display:none;}
+  .login-card{
+    background:var(--card); width:100%; max-width:380px; border-radius:28px; padding:34px 26px;
+    box-shadow:0 30px 60px rgba(45,43,69,.35); text-align:center;
+  }
+  .login-card .logo-img{width:104px; height:104px; border-radius:26px; object-fit:cover; margin:0 auto 14px; display:block; box-shadow:none;}
+  .login-card h2{font-size:19px; margin-bottom:2px; color:var(--text);}
+  .login-card .sub{font-size:12.5px; color:var(--text-dim); margin-bottom:22px;}
+  .login-card .field{text-align:left;}
+  .login-error{background:var(--lose-soft); color:var(--lose); font-size:12.5px; font-weight:600; padding:10px 12px; border-radius:12px; margin-bottom:14px; display:none;}
+  .login-error.show{display:block;}
+  .login-hint{font-size:11px; color:var(--text-dim); margin-top:16px; line-height:1.6;}
+
+  .profile-card{background:var(--card); border-radius:var(--radius); padding:26px 20px; text-align:center; border:1px solid var(--border); box-shadow:var(--shadow); margin-bottom:20px;}
+  .profile-avatar-wrap{position:relative; width:120px; height:120px; margin:0 auto 14px;}
+  .profile-avatar{width:120px; height:120px; border-radius:50%; object-fit:cover; box-shadow:none; border:3px solid var(--primary-soft);}
+  .profile-avatar-edit{position:absolute; bottom:0; right:0; width:32px; height:32px; border-radius:50%; background:var(--hero-gradient); color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px; cursor:pointer; border:3px solid #fff;}
+  .profile-name{font-weight:800; font-size:18px; color:var(--text);}
+  .profile-username{font-size:12.5px; color:var(--text-dim); margin-top:2px;}
+  .role-badge{display:inline-block; margin-top:10px; padding:4px 14px; border-radius:20px; font-size:11px; font-weight:700; background:var(--primary-soft); color:var(--primary);}
+  .profile-stats{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:18px;}
+  .profile-stats .ps{background:var(--card-2); border-radius:14px; padding:12px 8px;}
+  .profile-stats .ps-label{font-size:10.5px; color:var(--text-dim); margin-bottom:4px;}
+  .profile-stats .ps-val{font-size:14px; font-weight:800; color:var(--text);}
+
+  .user-row{display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:12px 14px; margin-bottom:10px; box-shadow:var(--shadow);}
+  .user-row img{width:54px; height:54px; border-radius:50%; object-fit:cover; box-shadow:none; flex-shrink:0;}
+  .user-row .ur-mid{flex:1; min-width:0;}
+  .user-row .ur-name{font-weight:700; font-size:14px; color:var(--text);}
+  .user-row .ur-sub{font-size:11.5px; color:var(--text-dim);}
+  .user-row .ur-actions{display:flex; gap:8px;}
+  .user-row .ur-actions span{cursor:pointer; font-size:16px;}
+
+  .config-gate{position:fixed; inset:0; background:var(--bg); z-index:500; display:flex; align-items:center; justify-content:center; padding:24px;}
+  .config-gate .box{max-width:520px; background:var(--card); border-radius:24px; padding:30px 26px; box-shadow:var(--shadow); border:1px solid var(--border);}
+  .config-gate h2{font-size:18px; margin-bottom:10px;}
+  .config-gate p{font-size:13px; color:var(--text-dim); line-height:1.7; margin-bottom:14px;}
+  .config-gate code{background:var(--primary-soft); color:var(--primary); padding:2px 6px; border-radius:6px; font-size:12px;}
+</style>
+</head>
+<body>
+
+<!-- ============================ CONFIG GATE ============================ -->
+<!-- ຂຶ້ນສະເພາະຖ້າຍັງບໍ່ໄດ້ຕັ້ງ API_URL ຂ້າງລຸ່ມນີ້ໃຫ້ຖືກຕ້ອງ -->
+<div id="configGate" class="config-gate" style="display:none;">
+  <div class="box">
+    <h2>⚙️ ຍັງບໍ່ໄດ້ຕັ້ງຄ່າ API_URL</h2>
+    <p>ໄຟລ໌ນີ້ຕ້ອງເຊື່ອມກັບ Google Apps Script Backend ຂອງທ່ານກ່ອນ. ໃຫ້ໄປ Deploy Apps Script (Code.gs) ເປັນ Web App
+    (Execute as: Me, Who has access: Anyone) ແລ້ວຄັດລອກລິ້ງ <code>.../exec</code> ມາໃສ່ໃນຕົວແປ
+    <code>API_URL</code> ຢູ່ໃນຕົ້ນໄຟລ໌ <code>index.html</code> ນີ້ (ໃນ <code>&lt;script&gt;</code> ບ່ອນທຳອິດ).</p>
+    <p>ຫຼັງແກ້ແລ້ວ ໃຫ້ save ໄຟລ໌ ແລະ refresh ໜ້ານີ້ຄືນໃໝ່.</p>
+  </div>
+</div>
+
+<!-- ============================ LOGIN SCREEN ============================ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <img class="logo-img" id="login-logo-img" alt="logo">
+    <h2 id="login-title">ກຳລັງໂຫຼດ...</h2>
+    <div class="sub" id="login-subtitle"></div>
+    <div class="login-error" id="loginError"></div>
+    <div class="field"><label>ຊື່ຜູ້ໃຊ້</label><input type="text" id="login-username" placeholder="ຊື່ຜູ້ໃຊ້ ຂອງທ່ານ" autocomplete="username"></div>
+    <div class="field"><label>ລະຫັດຜ່ານ</label><input type="password" id="login-password" placeholder="••••••" autocomplete="current-password"></div>
+    <button class="btn" id="loginBtn">ເຂົ້າສູ່ລະບົບ</button>
+    <div class="login-hint">ຍັງບໍ່ມີບັນຊີ? ໃຫ້ຜູ້ເປັນ admin ເພີ່ມຊື່ຜູ້ໃຊ້ໃຫ້ທ່ານຢູ່ໜ້າ "ຫຼັງບ້ານ &gt; ຜູ້ໃຊ້"<br>ບັນຊີເລີ່ມຕົ້ນ: admin / 1234</div>
+  </div>
+</div>
+
+<div id="app" style="display:none;">
+  <div id="sidebar">
+    <div class="brand">
+      <img class="logo-img" id="sb-logo-img" alt="logo">
+      <div>
+        <div class="name" id="sb-title">ກຳລັງໂຫຼດ...</div>
+        <div class="sub" id="sb-subtitle"></div>
+      </div>
+    </div>
+    <div class="nav-item active" data-tab="home">🏠 &nbsp;ໜ້າຫຼັກ</div>
+    <div class="nav-item" data-tab="history">📜 &nbsp;ປະຫວັດການແທງ</div>
+    <div class="nav-item" data-tab="stats">📊 &nbsp;ສະຫຼຸບ / ສະຖິຕິ</div>
+    <div class="nav-item" data-tab="profile">👤 &nbsp;ໂປຟາຍຂອງຂ້ອຍ</div>
+    <div class="nav-item" data-tab="admin" id="sb-admin-link" style="display:none;">⚙️ &nbsp;ຫຼັງບ້ານ / ຕັ້ງຄ່າ</div>
+    <div class="sidebar-user">
+      <img id="sb-user-avatar" alt="avatar">
+      <div>
+        <div class="su-name" id="sb-user-name">-</div>
+        <div class="su-role" id="sb-user-role">-</div>
+      </div>
+    </div>
+    <div class="live-badge" style="padding:10px 4px 0;"><span class="dot" id="liveDot"></span><span id="liveLabel">-</span></div>
+  </div>
+
+  <div id="main">
+    <div class="topbar">
+      <div class="brand">
+        <img class="logo-img" id="tb-logo-img" alt="logo">
+        <div>
+          <div class="name" id="tb-title" style="font-size:15px;">ກຳລັງໂຫຼດ...</div>
+          <div class="sub" id="tb-subtitle"></div>
+        </div>
+      </div>
+      <button class="icon-btn" id="menuBtn"><img id="tb-user-avatar" alt="avatar"></button>
+    </div>
+
+    <div id="errorBanner" class="error-banner" style="display:none;"></div>
+
+    <!-- HOME -->
+    <div class="tab-panel" id="tab-home">
+      <div class="hero-card">
+        <div class="hero-top">
+          <span id="greeting">ສະບາຍດີ 👋</span>
+          <span class="hero-pill" id="liveLabelHero">-</span>
+        </div>
+        <div class="hero-num" id="stat-net">0 ກີບ</div>
+        <div class="hero-sub" id="lbl-net">ກຳໄລ/ຂາດທຶນ</div>
+        <div class="hero-chips">
+          <div class="hero-chip"><div class="hc-label" id="lbl-income">ລາຍຮັບ</div><div class="hc-val" id="stat-income">0</div></div>
+          <div class="hero-chip"><div class="hc-label" id="lbl-expense">ລາຍຈ່າຍ</div><div class="hc-val" id="stat-expense">0</div></div>
+          <div class="hero-chip"><div class="hc-label">ຈຳນວນຄັ້ງ</div><div class="hc-val" id="stat-count">0</div></div>
+        </div>
+      </div>
+
+      <div class="section-title">ຂໍ້ມູນລ່າສຸດ <span class="link" data-goto="history">ເບິ່ງທັງໝົດ →</span></div>
+      <div id="recentList"></div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="tab-panel" id="tab-history" style="display:none;">
+      <div class="pill-tabs">
+        <div class="pill active" data-filter="ALL">ທັງໝົດ</div>
+        <div class="pill" data-filter="WIN">ຖືກ</div>
+        <div class="pill" data-filter="LOSE">ບໍ່ຖືກ</div>
+        <div class="pill" data-filter="PENDING">ລໍຖ້າ</div>
+      </div>
+      <div class="field"><input type="text" id="historySearch" placeholder="🔍 ຄົ້ນຫາ ເລກງວດ / ຕົວແທນ / ໝາຍເຫດ"></div>
+      <div id="historyList"></div>
+      <button class="btn secondary" id="exportCsvBtn" style="margin-top:8px;">⬇️ ສົ່ງອອກ CSV</button>
+    </div>
+
+    <!-- STATS -->
+    <div class="tab-panel" id="tab-stats" style="display:none;">
+      <div class="chart-card">
+        <div class="section-title" style="margin-top:0;">ລາຍຮັບ vs ລາຍຈ່າຍ ຕໍ່ວັນ</div>
+        <canvas id="dayChart" height="180"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="section-title" style="margin-top:0;">ຈຳນວນຄັ້ງ: ຖືກ / ບໍ່ຖືກ / ລໍຖ້າ</div>
+        <canvas id="statusChart" height="180"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="section-title" style="margin-top:0;">ສັດທີ່ຖືກເລືອກເລື້ອຍທີ່ສຸດ</div>
+        <canvas id="animalChart" height="180"></canvas>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="tab-panel" id="tab-profile" style="display:none;">
+      <div class="profile-card">
+        <div class="profile-avatar-wrap">
+          <img class="profile-avatar" id="profile-avatar-img" alt="avatar">
+          <label class="profile-avatar-edit" for="profile-avatar-file">📷</label>
+          <input type="file" id="profile-avatar-file" accept="image/*" style="display:none;">
+        </div>
+        <div class="profile-name" id="profile-name">-</div>
+        <div class="profile-username" id="profile-username">-</div>
+        <div class="role-badge" id="profile-role">-</div>
+        <div class="profile-stats">
+          <div class="ps"><div class="ps-label">ຖືກ</div><div class="ps-val" id="profile-win">0</div></div>
+          <div class="ps"><div class="ps-label">ບໍ່ຖືກ</div><div class="ps-val" id="profile-lose">0</div></div>
+          <div class="ps"><div class="ps-label">ລໍຖ້າ</div><div class="ps-val" id="profile-pending">0</div></div>
+        </div>
+      </div>
+      <button class="btn secondary" id="logoutBtn">🚪 ອອກຈາກລະບົບ</button>
+    </div>
+
+    <!-- ADMIN -->
+    <div class="tab-panel" id="tab-admin" style="display:none;">
+      <div class="pill-tabs">
+        <div class="pill active" data-atab="brand">ແບຣນ/ຂໍ້ຄວາມ</div>
+        <div class="pill" data-atab="theme">ສີສັນ</div>
+        <div class="pill" data-atab="animals">ສັດ/ໄອຄອນ</div>
+        <div class="pill" data-atab="rounds">ຜົນງວດ</div>
+        <div class="pill" data-atab="users">ຜູ້ໃຊ້</div>
+      </div>
+
+      <div id="atab-brand">
+        <div class="field">
+          <label>ໂລໂກ້ລະບົບ</label>
+          <div class="logo-upload-row">
+            <img id="logoPreview" class="logo-preview" alt="logo preview">
+            <label class="logo-upload-btn" for="cfg-logoFile">📷 ປ່ຽນໂລໂກ້</label>
+            <input type="file" id="cfg-logoFile" accept="image/*" style="display:none;">
+          </div>
+          <div class="hint">ອັບໂຫຼດຮູບໂລໂກ້ (ແນະນຳຮູບສີ່ຫຼ່ຽມ) — ຮູບຈະຖືກເກັບໄວ້ໃນ Google Drive ຂອງທ່ານເອງອັດຕະໂນມັດ</div>
+        </div>
+        <div class="field"><label>ຊື່ແອັບ</label><input type="text" id="cfg-appTitle"></div>
+        <div class="field"><label>ຄຳອະທິບາຍ</label><input type="text" id="cfg-appSubtitle"></div>
+        <div class="field"><label>ຄຳທັກທາຍໜ້າຫຼັກ</label><input type="text" id="cfg-homeGreeting"></div>
+        <div class="field"><label>ປ້າຍລາຍຮັບ</label><input type="text" id="cfg-labelIncome"></div>
+        <div class="field"><label>ປ້າຍລາຍຈ່າຍ</label><input type="text" id="cfg-labelExpense"></div>
+        <div class="field"><label>ປ້າຍກຳໄລ/ຂາດທຶນ</label><input type="text" id="cfg-labelNet"></div>
+        <div class="field"><label>ຕົວຄູນອັດຕາຈ່າຍ (ເງິນແທງ × ຈຳນວນໂຕຖືກ × ຕົວຄູນ)</label><input type="number" id="cfg-payoutMultiplier" placeholder="30"></div>
+      </div>
+
+      <div id="atab-theme" style="display:none;">
+        <div class="field"><label>ສີຫຼັກ</label><input type="color" id="cfg-themePrimary"></div>
+        <div class="field"><label>ສີເນັ້ນ</label><input type="color" id="cfg-themeAccent"></div>
+        <div class="field"><label>ສີ "ຖືກ"</label><input type="color" id="cfg-themeWin"></div>
+        <div class="field"><label>ສີ "ບໍ່ຖືກ"</label><input type="color" id="cfg-themeLose"></div>
+      </div>
+
+      <div id="atab-animals" style="display:none;">
+        <div id="animalConfigList"></div>
+        <button class="btn secondary" id="addAnimalBtn">+ ເພີ່ມສັດ</button>
+      </div>
+
+      <div id="atab-rounds" style="display:none;">
+        <div class="field"><label>ເລກງວດ</label><input type="text" id="rd-id" placeholder="36260150"></div>
+        <div class="field"><label>ວັນທີ-ເວລາງວດ</label><input type="datetime-local" id="rd-datetime"></div>
+        <label style="font-size:12.5px; color:var(--text-dim); font-weight:600;">ສັດຖືກ 3 ໂຕ (ບັນທຶກແລ້ວລະບົບຈະຕັດງວດອັດຕະໂນມັດ)</label>
+        <div class="animal-picker" id="rd-animal-picker" style="margin:8px 0 22px;"></div>
+        <button class="btn" id="saveRoundBtn">ບັນທຶກຜົນງວດ + ຕັດງວດອັດຕະໂນມັດ</button>
+        <div class="section-title">ງວດທີ່ບັນທຶກແລ້ວ</div>
+        <div id="roundsList"></div>
+      </div>
+
+      <div id="atab-users" style="display:none;">
+        <div class="hint" style="margin-bottom:12px;">ເພີ່ມຄົນໃໝ່ໃຫ້ເຂົ້າໃຊ້ລະບົບໄດ້ — ແຕ່ລະຄົນຈະເຫັນສະເພາະລາຍການແທງຂອງໂຕເອງ, ມີແຕ່ admin ເທົ່ານັ້ນທີ່ເຫັນຂໍ້ມູນທຸກຄົນ</div>
+        <div id="usersList"></div>
+        <button class="btn secondary" id="addUserBtn">+ ເພີ່ມຜູ້ໃຊ້ໃໝ່</button>
+      </div>
+
+      <div id="atab-brand-save-wrap">
+        <button class="btn" id="saveConfigBtn" style="margin-top:20px;">💾 ບັນທຶກການຕັ້ງຄ່າ</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="fab" id="fabAdd">＋</button>
+
+<div class="bottom-nav">
+  <div class="item active" data-tab="home">🏠<span>ໜ້າຫຼັກ</span></div>
+  <div class="item" data-tab="history">📜<span>ປະຫວັດ</span></div>
+  <div class="nav-fab" id="fabAddMobile">＋</div>
+  <div class="item" data-tab="stats">📊<span>ສະຖິຕິ</span></div>
+  <div class="item" data-tab="profile">👤<span>ໂປຟາຍ</span></div>
+</div>
+</div>
+
+<!-- Add/Edit Bet Modal -->
+<div class="overlay" id="betOverlay">
+  <div class="sheet">
+    <h3 id="betModalTitle">ບັນທຶກລາຍການແທງ</h3>
+    <div class="row2">
+      <div class="field"><label>ເລກງວດ</label><input type="text" id="bet-roundId" placeholder="36260150"></div>
+      <div class="field"><label>ວັນທີ-ເວລາງວດ</label><input type="datetime-local" id="bet-roundDateTime"></div>
+    </div>
+    <div class="field">
+      <label>ສັດທີ່ແທງ</label>
+      <div class="animal-picker" id="bet-animal-picker"></div>
+    </div>
+    <div class="row2" style="margin-top:20px;">
+      <div class="field"><label>ຈຳນວນເງິນແທງ (ກີບ)</label><input type="number" id="bet-stake" placeholder="10000"></div>
+      <div class="field"><label>ຈຳນວນທີ່ໄດ້ (ຖ້າຖືກ)</label><input type="number" id="bet-payout" placeholder="0"></div>
+    </div>
+    <div class="field">
+      <label>ຕົວແທນ / ບັນຊີ</label>
+      <input type="text" id="bet-agent" placeholder="ຊື່ຕົວແທນ">
+    </div>
+    <div class="field">
+      <label>ສະຖານະ</label>
+      <div class="status-picker">
+        <div class="status-pick PENDING" data-status="PENDING">ລໍຖ້າ</div>
+        <div class="status-pick WIN" data-status="WIN">ຖືກ ✅</div>
+        <div class="status-pick LOSE" data-status="LOSE">ບໍ່ຖືກ ❌</div>
+      </div>
+    </div>
+    <div class="field"><label>ໝາຍເຫດ</label><textarea id="bet-note" rows="2"></textarea></div>
+    <button class="btn" id="saveBetBtn">ບັນທຶກ</button>
+    <button class="btn danger" id="deleteBetBtn" style="display:none;">ລຶບລາຍການນີ້</button>
+    <button class="btn secondary" id="cancelBetBtn">ຍົກເລີກ</button>
+  </div>
+</div>
+
+<!-- Add/Edit User Modal -->
+<div class="overlay" id="userOverlay">
+  <div class="sheet">
+    <h3 id="userModalTitle">ເພີ່ມຜູ້ໃຊ້ໃໝ່</h3>
+    <div class="field"><label>ຊື່ຜູ້ໃຊ້ (login)</label><input type="text" id="user-username" placeholder="ເຊັ່ນ: somchai"></div>
+    <div class="field"><label>ຊື່ສະແດງ</label><input type="text" id="user-displayName" placeholder="ຊື່ທີ່ຈະສະແດງ"></div>
+    <div class="field"><label id="user-password-label">ລະຫັດຜ່ານ</label><input type="text" id="user-password" placeholder="ຕັ້ງລະຫັດຜ່ານ"></div>
+    <div class="field">
+      <label>ສິດການໃຊ້ງານ</label>
+      <div class="status-picker">
+        <div class="status-pick PENDING role-pick" data-role="user">ຜູ້ໃຊ້ທົ່ວໄປ</div>
+        <div class="status-pick PENDING role-pick" data-role="admin">Admin</div>
+      </div>
+    </div>
+    <button class="btn" id="saveUserBtn">ບັນທຶກຜູ້ໃຊ້</button>
+    <button class="btn danger" id="deleteUserBtn" style="display:none;">ລຶບຜູ້ໃຊ້ນີ້</button>
+    <button class="btn secondary" id="cancelUserBtn">ຍົກເລີກ</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =================================================================
+   ★★★ ຕັ້ງຄ່າສຳຄັນ ★★★
+   ໃສ່ລິ້ງ /exec ຂອງ Google Apps Script deployment ຂອງທ່ານທີ່ນີ້
+   (Deploy > Manage deployments > ຄັດລອກ "Web app URL")
+================================================================= */
+const API_URL = 'https://script.google.com/macros/s/ໃສ່_DEPLOYMENT_ID_ຂອງທ່ານ/exec';
+
+/* =================================================================
+   ໂລໂກ້ / ໂປຟາຍ ຄ່າເລີ່ມຕົ້ນ (ຝັງໄວ້ໃນໂຕແອັບ)
+================================================================= */
+const DEFAULT_LOGO = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#8B7CF6"/><stop offset="50%" stop-color="#F48FC0"/><stop offset="100%" stop-color="#FFA94D"/>
+  </linearGradient></defs>
+  <rect width="100" height="100" rx="24" fill="url(#lg)"/>
+  <text x="50" y="65" font-size="46" text-anchor="middle">🦀</text>
+</svg>`);
+
+const DEFAULT_AVATAR = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#8B7CF6"/><stop offset="100%" stop-color="#F48FC0"/>
+  </linearGradient></defs>
+  <rect width="100" height="100" rx="50" fill="url(#g)"/>
+  <circle cx="50" cy="40" r="17" fill="#fff" opacity="0.9"/>
+  <path d="M20 88c4-22 20-32 30-32s26 10 30 32" fill="#fff" opacity="0.9"/>
+</svg>`);
+
+const ICON_GRADIENTS = [
+  'linear-gradient(135deg,#FF9F68,#FF6B6B)',
+  'linear-gradient(135deg,#8B7CF6,#B98CF0)',
+  'linear-gradient(135deg,#4FD1C5,#38B2AC)',
+  'linear-gradient(135deg,#63B3ED,#4299E1)',
+  'linear-gradient(135deg,#F6AD55,#ED8936)',
+  'linear-gradient(135deg,#F687B3,#ED64A6)',
+  'linear-gradient(135deg,#68D391,#48BB78)'
+];
+function animalGradient(id){
+  const idx = ANIMALS.findIndex(a => a.Id === id);
+  const i = idx >= 0 ? idx : 0;
+  return ICON_GRADIENTS[i % ICON_GRADIENTS.length];
+}
+
+/* =================================================================
+   STATE
+================================================================= */
+let CONFIG = {};
+let ANIMALS = [];
+let BETS = [];
+let ROUNDS = [];
+let currentStatus = 'PENDING';
+let editingBetId = null;
+let currentUser = null;
+let editingUserId = null;
+let selectedUserRole = 'user';
+
+/* =================================================================
+   BACKEND BRIDGE — fetch() ໄປຫາ Google Apps Script /exec URL
+   ★ ໃຊ້ Content-Type: text/plain ຢ່າງເຂັ້ມງວດ ເພື່ອຫຼີກລ່ຽງ CORS
+     preflight (ຖ້າໃຊ້ application/json, browser ຈະສົ່ງ OPTIONS
+     ກ່ອນ ແລະ Apps Script ຈະຕອບ preflight ນັ້ນບໍ່ຖືກ ເຮັດໃຫ້ fetch ລົ້ມເຫຼວ)
+   ★ action ທີ່ໃຊ້ id ໂດຍກົງ (ບໍ່ຜ່ານ payload): deleteBet, deleteRound, deleteUser
+================================================================= */
+const ID_ACTIONS = ['deleteBet', 'deleteRound', 'deleteUser'];
+
+async function callServer(action, arg){
+  const body = { action: action };
+  if (ID_ACTIONS.includes(action)) {
+    body.id = arg;
+  } else if (arg !== undefined) {
+    body.payload = arg;
+  }
+  let res;
+  try {
+    res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(body)
+    });
+  } catch (networkErr) {
+    throw new Error(action + '() ຕິດຕໍ່ Backend ບໍ່ໄດ້: ' + networkErr.message + ' (ກວດ API_URL ຫຼືການເຊື່ອມຕໍ່ອິນເຕີເນັດ)');
+  }
+  if (!res.ok) {
+    throw new Error(action + '() Backend ຕອບກັບ HTTP ' + res.status);
+  }
+  let data;
+  try {
+    data = await res.json();
+  } catch (parseErr) {
+    throw new Error(action + '() ອ່ານຄຳຕອບຈາກ Backend ບໍ່ໄດ້ (ບໍ່ແມ່ນ JSON): ' + parseErr.message);
+  }
+  return data;
+}
+
+function isApiUrlConfigured(){
+  return API_URL && API_URL.indexOf('ໃສ່_DEPLOYMENT_ID') === -1 && /^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(API_URL);
+}
+
+function defaultConfigJs(){
+  return { appTitle:'ປູປາເຕົ້າມະທາໂຊກ', appSubtitle:'ລະບົບຕິດຕາມສ່ວນຕົວ', logoIcon:'🎯', logoUrl:'',
+    themePrimary:'#8B7CF6', themeAccent:'#FFA94D', themeWin:'#2FB88B', themeLose:'#F26D6D',
+    homeGreeting:'ສະບາຍດີ, ນີ້ແມ່ນສະຫຼຸບຂອງເຈົ້າມື້ນີ້', labelIncome:'ລາຍຮັບ (ຖືກ)', labelExpense:'ລາຍຈ່າຍ (ບໍ່ຖືກ)',
+    labelNet:'ກຳໄລ / ຂາດທຶນ', payoutMultiplier:30 };
+}
+function emptySummary(){ return {income:0, expense:0, net:0, winCount:0, loseCount:0, pendingCount:0, byRound:[], byDay:[], byAnimal:[]}; }
+
+/* =================================================================
+   BOOTSTRAP
+================================================================= */
+async function bootstrap(){
+  if (!isApiUrlConfigured()) {
+    document.getElementById('configGate').style.display = 'flex';
+    return;
+  }
+  try {
+    const cfg = await callServer('getConfig');
+    CONFIG = cfg && !cfg.error ? cfg : defaultConfigJs();
+  } catch (e) {
+    CONFIG = defaultConfigJs();
+    showToast('ຕິດຕໍ່ Backend ບໍ່ໄດ້: ' + e.message);
+  }
+  applyTheme();
+  const src = currentLogoSrc();
+  const loginLogo = document.getElementById('login-logo-img');
+  loginLogo.onerror = function(){ this.onerror=null; this.src = DEFAULT_LOGO; };
+  loginLogo.src = src;
+  document.getElementById('login-title').textContent = CONFIG.appTitle || 'ລະບົບຕິດຕາມການແທງ';
+  document.getElementById('login-subtitle').textContent = CONFIG.appSubtitle || '';
+}
+
+/* =================================================================
+   LOGIN / LOGOUT
+================================================================= */
+function showLoginError(msg){
+  const el = document.getElementById('loginError');
+  el.textContent = msg; el.classList.add('show');
+}
+function hideLoginError(){
+  document.getElementById('loginError').classList.remove('show');
+}
+
+document.getElementById('loginBtn').addEventListener('click', doLogin);
+document.getElementById('login-password').addEventListener('keydown', (e)=>{ if (e.key === 'Enter') doLogin(); });
+document.getElementById('login-username').addEventListener('keydown', (e)=>{ if (e.key === 'Enter') doLogin(); });
+
+async function doLogin(){
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!username || !password) { showLoginError('ກະລຸນາໃສ່ຊື່ຜູ້ໃຊ້ ແລະ ລະຫັດຜ່ານ'); return; }
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = 'ກຳລັງກວດສອບ...';
+  try {
+    const res = await callServer('login', { username, password });
+    if (res && res.error) { showLoginError(res.error); return; }
+    if (res && res.ok) {
+      currentUser = res.user;
+      hideLoginError();
+      document.getElementById('loginScreen').classList.add('hide');
+      document.getElementById('app').style.display = 'flex';
+      await init();
+    }
+  } catch (err) {
+    showLoginError('ເຂົ້າສູ່ລະບົບລົ້ມເຫຼວ: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'ເຂົ້າສູ່ລະບົບ';
+  }
+}
+
+function doLogout(){
+  currentUser = null;
+  BETS = []; ROUNDS = [];
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginScreen').classList.remove('hide');
+  document.getElementById('login-username').value = '';
+  document.getElementById('login-password').value = '';
+  goto('home');
+}
+document.getElementById('logoutBtn').addEventListener('click', doLogout);
+
+/* =================================================================
+   INIT
+================================================================= */
+function safe(label, fn){
+  try { fn(); }
+  catch(e){ console.error(label, e); }
+}
+
+function setSyncing(on){
+  const dot = document.getElementById('liveDot');
+  if (dot) dot.classList.toggle('syncing', on);
+}
+
+async function init(){
+  setSyncing(true);
+  let data = null;
+  const errors = [];
+  const scopeCtx = { username: currentUser.username, isAdmin: currentUser.role === 'admin' };
+  try {
+    data = await callServer('getAll', scopeCtx);
+    if (data && data.error) { errors.push('getAll: ' + data.error); data = null; }
+  } catch (err) {
+    errors.push('getAll: ' + err.message);
+  }
+
+  if (!data) {
+    const jobs = [
+      { key:'config',  fn:'getConfig' },
+      { key:'animals', fn:'getAnimals' },
+      { key:'bets',    fn:'getBets', args:[{ username: scopeCtx.isAdmin ? null : scopeCtx.username }] },
+      { key:'rounds',  fn:'getRounds' },
+      { key:'summary', fn:'getSummary', args:[{ username: scopeCtx.isAdmin ? null : scopeCtx.username }] }
+    ];
+    const results = await Promise.allSettled(jobs.map(j => callServer(j.fn, ...(j.args||[]))));
+    data = {};
+    results.forEach((r, i) => {
+      if (r.status === 'fulfilled') data[jobs[i].key] = r.value;
+      else errors.push(jobs[i].fn + ': ' + r.reason.message);
+    });
+  }
+
+  CONFIG  = (data && data.config)  || defaultConfigJs();
+  ANIMALS = Array.isArray(data && data.animals) ? data.animals : [];
+  BETS    = Array.isArray(data && data.bets)    ? data.bets    : [];
+  ROUNDS  = Array.isArray(data && data.rounds)  ? data.rounds  : [];
+  const summary = (data && data.summary) || emptySummary();
+
+  document.getElementById('sb-admin-link').style.display = currentUser.role === 'admin' ? 'flex' : 'none';
+
+  safe('theme', () => applyTheme());
+  safe('brand', () => renderBrand());
+  safe('user-chrome', () => renderUserChrome());
+  safe('home', () => renderHome(summary));
+  safe('history', () => renderHistory());
+  safe('stats', () => renderStats(summary));
+  safe('profile', () => renderProfile(summary));
+  safe('animal-pickers', () => renderAnimalPickers());
+  if (currentUser.role === 'admin') safe('admin-forms', () => renderAdminForms());
+
+  document.getElementById('liveLabel').textContent = 'ເຊື່ອມຕໍ່ Backend ແລ້ວ';
+  document.getElementById('liveLabelHero').textContent = 'ເຊື່ອມຕໍ່ Backend ແລ້ວ';
+
+  if (errors.length) showErrorBanner(errors.join('\n'));
+  else hideErrorBanner();
+
+  setSyncing(false);
+
+  if (!window.__pollingStarted) {
+    window.__pollingStarted = true;
+    setInterval(refreshData, 20000);
+  }
+}
+
+function showErrorBanner(msg){
+  const box = document.getElementById('errorBanner');
+  box.style.display = 'block';
+  box.innerHTML = `⚠️ ໂຫຼດຂໍ້ມູນບາງສ່ວນບໍ່ສຳເລັດ:\n${msg}\n\n➡ ກວດ: 1) API_URL ຖືກຕ້ອງບໍ່ 2) Deploy > New version ຫຼັງແກ້ Code.gs ແລ້ວບໍ່ 3) Execute as: Me, Anyone\n<span class="retry-btn" onclick="init()">ລອງໃໝ່ອີກຄັ້ງ</span>`;
+}
+function hideErrorBanner(){
+  document.getElementById('errorBanner').style.display = 'none';
+}
+
+async function refreshData(){
+  if (!currentUser) return;
+  try {
+    const scopeCtx = { username: currentUser.username, isAdmin: currentUser.role === 'admin' };
+    const data = await callServer('getAll', scopeCtx);
+    if (data && !data.error) {
+      BETS = Array.isArray(data.bets) ? data.bets : BETS;
+      ROUNDS = Array.isArray(data.rounds) ? data.rounds : ROUNDS;
+      const summary = data.summary || emptySummary();
+      safe('home', () => renderHome(summary));
+      safe('history', () => renderHistory());
+      safe('stats', () => renderStats(summary));
+      safe('profile', () => renderProfile(summary));
+      safe('rounds', () => renderRoundsList());
+      hideErrorBanner();
+    }
+  } catch (err) {
+    // silent — the app keeps showing the last good data
+  }
+}
+
+/* =================================================================
+   THEME / BRAND
+================================================================= */
+function applyTheme(){
+  const r = document.documentElement.style;
+  r.setProperty('--primary', CONFIG.themePrimary || '#8B7CF6');
+  r.setProperty('--accent', CONFIG.themeAccent || '#FFA94D');
+  r.setProperty('--win', CONFIG.themeWin || '#2FB88B');
+  r.setProperty('--lose', CONFIG.themeLose || '#F26D6D');
+}
+function currentLogoSrc(){
+  return (CONFIG.logoUrl && CONFIG.logoUrl.trim()) ? CONFIG.logoUrl.trim() : DEFAULT_LOGO;
+}
+function userAvatarSrc(u){
+  return (u && u.avatar && u.avatar.trim()) ? u.avatar.trim() : DEFAULT_AVATAR;
+}
+function renderBrand(){
+  const src = currentLogoSrc();
+  [['sb-logo-img'],['tb-logo-img'],['logoPreview']].forEach(([id])=>{
+    const el = document.getElementById(id);
+    el.onerror = function(){ this.onerror=null; this.src = DEFAULT_LOGO; };
+    el.src = src;
+  });
+  document.getElementById('sb-title').textContent = CONFIG.appTitle || '';
+  document.getElementById('tb-title').textContent = CONFIG.appTitle || '';
+  document.getElementById('sb-subtitle').textContent = CONFIG.appSubtitle || '';
+  document.getElementById('tb-subtitle').textContent = CONFIG.appSubtitle || '';
+  document.getElementById('greeting').textContent = (CONFIG.homeGreeting || '') + (currentUser ? ' — ' + currentUser.displayName : '');
+  document.getElementById('lbl-income').textContent = CONFIG.labelIncome || 'ລາຍຮັບ';
+  document.getElementById('lbl-expense').textContent = CONFIG.labelExpense || 'ລາຍຈ່າຍ';
+  document.getElementById('lbl-net').textContent = CONFIG.labelNet || 'ກຳໄລ/ຂາດທຶນ';
+}
+function renderUserChrome(){
+  if (!currentUser) return;
+  const src = userAvatarSrc(currentUser);
+  const sbAvatar = document.getElementById('sb-user-avatar');
+  sbAvatar.onerror = function(){ this.onerror=null; this.src = DEFAULT_AVATAR; };
+  sbAvatar.src = src;
+  document.getElementById('sb-user-name').textContent = currentUser.displayName;
+  document.getElementById('sb-user-role').textContent = currentUser.role === 'admin' ? 'Admin' : 'ຜູ້ໃຊ້ທົ່ວໄປ';
+  const tbAvatar = document.getElementById('tb-user-avatar');
+  tbAvatar.onerror = function(){ this.onerror=null; this.src = DEFAULT_AVATAR; };
+  tbAvatar.src = src;
+}
+
+/* =================================================================
+   HELPERS
+================================================================= */
+function money(n){ return (Number(n)||0).toLocaleString('en-US') + ' ກີບ'; }
+function animalIcon(id){ const a = ANIMALS.find(x=>x.Id===id); return a ? a.Icon : '❔'; }
+function animalName(id){ const a = ANIMALS.find(x=>x.Id===id); return a ? a.Name : id; }
+function showToast(msg){
+  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2400);
+}
+
+function pad2(n){ return String(n).padStart(2,'0'); }
+function isoLocalFromDate(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())+'T'+pad2(d.getHours())+':'+pad2(d.getMinutes()); }
+function isoToDisplay(iso){
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d)) return iso;
+  return pad2(d.getDate())+'/'+pad2(d.getMonth()+1)+'/'+d.getFullYear()+' '+pad2(d.getHours())+':'+pad2(d.getMinutes());
+}
+function displayToIso(display){
+  if (!display) return '';
+  const m = String(display).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})/);
+  if (m) {
+    const [,dd,mm,yyyy,hh,mi] = m;
+    return `${yyyy}-${pad2(mm)}-${pad2(dd)}T${pad2(hh)}:${mi}`;
+  }
+  const d = new Date(display);
+  if (!isNaN(d)) return isoLocalFromDate(d);
+  return '';
+}
+
+/* =================================================================
+   HOME
+================================================================= */
+function renderHome(summary){
+  summary = summary || emptySummary();
+  document.getElementById('stat-income').textContent = money(summary.income);
+  document.getElementById('stat-expense').textContent = money(summary.expense);
+  document.getElementById('stat-count').textContent = (summary.winCount||0) + (summary.loseCount||0) + (summary.pendingCount||0);
+  const netEl = document.getElementById('stat-net');
+  netEl.textContent = money(summary.net);
+
+  const list = document.getElementById('recentList');
+  const recent = (Array.isArray(BETS) ? BETS : []).slice(0, 5);
+  list.innerHTML = recent.length ? recent.map(betCardHtml).join('') : emptyHtml('ຍັງບໍ່ມີລາຍການ', 'ກົດປຸ່ມ ➕ ເພື່ອບັນທຶກລາຍການແທງທຳອິດ');
+  attachBetCardEvents(list);
+}
+
+function emptyHtml(title, sub){
+  return `<div class="empty"><div class="e-icon">🗒️</div><div style="font-weight:700; margin-bottom:4px;">${title}</div><div style="font-size:12.5px;">${sub}</div></div>`;
+}
+
+function betCardHtml(b){
+  const animals = String(b.Animals||'').split(',').filter(Boolean);
+  const status = String(b.Status||'PENDING').toUpperCase();
+  const amt = status === 'WIN' ? b.Payout : b.Stake;
+  const sign = status === 'WIN' ? '+' : (status === 'LOSE' ? '−' : '');
+  const firstAnimal = animals[0];
+  const iconGrad = firstAnimal ? animalGradient(firstAnimal) : ICON_GRADIENTS[0];
+  const iconEmoji = firstAnimal ? animalIcon(firstAnimal) : '❔';
+  const animalNames = animals.map(a=>animalIcon(a)).join(' ');
+  const ownerTag = (currentUser && currentUser.role === 'admin' && b.Username) ? (' · 👤 '+b.Username) : '';
+  return `
+  <div class="tx-row" data-id="${b.ID}">
+    <div class="tx-icon" style="background:${iconGrad}">${iconEmoji}</div>
+    <div class="tx-mid">
+      <div class="tx-title">ງວດທີ ${b.RoundID || '-'}</div>
+      <div class="tx-sub">${b.RoundDateTime||''} ${animalNames ? '· '+animalNames : ''} ${b.Agent ? '· '+b.Agent : ''}${ownerTag}</div>
+    </div>
+    <div class="tx-right">
+      <span class="tx-amount ${status}">${sign}${money(amt)}</span>
+      <span class="status-badge ${status}">${status==='WIN'?'ຖືກ':status==='LOSE'?'ບໍ່ຖືກ':'ລໍຖ້າ'}</span>
+    </div>
+  </div>`;
+}
+
+function attachBetCardEvents(container){
+  container.querySelectorAll('.tx-row[data-id]').forEach(card=>{
+    card.addEventListener('click', ()=> openBetModal(Number(card.dataset.id)));
+  });
+}
+
+/* =================================================================
+   HISTORY
+================================================================= */
+let historyFilter = 'ALL';
+let historyQuery = '';
+function renderHistory(){
+  const list = document.getElementById('historyList');
+  let items = Array.isArray(BETS) ? BETS : [];
+  if (historyFilter !== 'ALL') items = items.filter(b => String(b.Status).toUpperCase() === historyFilter);
+  if (historyQuery) {
+    const q = historyQuery.toLowerCase();
+    items = items.filter(b =>
+      String(b.RoundID||'').toLowerCase().includes(q) ||
+      String(b.Agent||'').toLowerCase().includes(q) ||
+      String(b.Note||'').toLowerCase().includes(q) ||
+      String(b.Username||'').toLowerCase().includes(q)
+    );
+  }
+  list.innerHTML = items.length ? items.map(betCardHtml).join('') : emptyHtml('ບໍ່ພົບລາຍການ', 'ລອງປ່ຽນຕົວກອງ ຫຼື ຄົ້ນຫາອື່ນ');
+  attachBetCardEvents(list);
+}
+document.querySelectorAll('.pill-tabs .pill[data-filter]').forEach(p=>{
+  p.addEventListener('click', ()=>{
+    document.querySelectorAll('.pill-tabs .pill[data-filter]').forEach(x=>x.classList.remove('active'));
+    p.classList.add('active');
+    historyFilter = p.dataset.filter;
+    renderHistory();
+  });
+});
+document.getElementById('historySearch').addEventListener('input', (e)=>{
+  historyQuery = e.target.value.trim();
+  renderHistory();
+});
+
+function exportCsv(){
+  const rows = [['ID','ວັນທີບັນທຶກ','ເລກງວດ','ວັນທີງວດ','ສັດ','ເງິນແທງ','ສະຖານະ','ຈຳນວນທີ່ໄດ້','ຕົວແທນ','ໝາຍເຫດ','ຜູ້ໃຊ້']];
+  (BETS||[]).forEach(b => rows.push([b.ID,b.Timestamp,b.RoundID,b.RoundDateTime,b.Animals,b.Stake,b.Status,b.Payout,b.Agent,b.Note,b.Username]));
+  const csv = rows.map(r => r.map(v => '"' + String(v==null?'':v).replace(/"/g,'""') + '"').join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'bets_' + Date.now() + '.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+document.getElementById('exportCsvBtn').addEventListener('click', exportCsv);
+
+/* =================================================================
+   STATS
+================================================================= */
+let dayChart, statusChart, animalChart;
+function renderStats(summary){
+  summary = summary || emptySummary();
+  const ctx1 = document.getElementById('dayChart');
+  const byDay = Array.isArray(summary.byDay) ? summary.byDay : [];
+  const days = byDay.map(d=>d.day);
+  const incomeArr = byDay.map(d=>d.income);
+  const expenseArr = byDay.map(d=>d.expense);
+  if (dayChart) dayChart.destroy();
+  dayChart = new Chart(ctx1, {
+    type:'bar',
+    data:{ labels:days, datasets:[
+      {label:'ລາຍຮັບ', data:incomeArr, backgroundColor:'#2FB88B', borderRadius:8},
+      {label:'ລາຍຈ່າຍ', data:expenseArr, backgroundColor:'#F26D6D', borderRadius:8}
+    ]},
+    options:{ responsive:true, plugins:{legend:{labels:{color:'#2D2B45'}}},
+      scales:{ x:{ticks:{color:'#8B89A3'}, grid:{color:'#ECEAF6'}},
+               y:{ticks:{color:'#8B89A3'}, grid:{color:'#ECEAF6'}} } }
+  });
+
+  const ctx2 = document.getElementById('statusChart');
+  if (statusChart) statusChart.destroy();
+  statusChart = new Chart(ctx2, {
+    type:'doughnut',
+    data:{ labels:['ຖືກ','ບໍ່ຖືກ','ລໍຖ້າ'], datasets:[{
+      data:[summary.winCount||0, summary.loseCount||0, summary.pendingCount||0],
+      backgroundColor:['#2FB88B','#F26D6D','#FFA94D'], borderWidth:0
+    }]},
+    options:{ responsive:true, plugins:{legend:{labels:{color:'#2D2B45'}}} }
+  });
+
+  const ctx3 = document.getElementById('animalChart');
+  const byAnimal = (Array.isArray(summary.byAnimal) ? summary.byAnimal : []).slice(0,8);
+  if (animalChart) animalChart.destroy();
+  animalChart = new Chart(ctx3, {
+    type:'bar',
+    data:{ labels: byAnimal.map(a => (animalIcon(a.animal)+' '+animalName(a.animal))), datasets:[
+      {label:'ຈຳນວນຄັ້ງ', data: byAnimal.map(a=>a.count), backgroundColor:'#8B7CF6', borderRadius:8}
+    ]},
+    options:{ indexAxis:'y', responsive:true, plugins:{legend:{display:false}},
+      scales:{ x:{ticks:{color:'#8B89A3'}, grid:{color:'#ECEAF6'}},
+               y:{ticks:{color:'#8B89A3'}, grid:{display:false}} } }
+  });
+}
+
+/* =================================================================
+   PROFILE
+================================================================= */
+function renderProfile(summary){
+  if (!currentUser) return;
+  summary = summary || emptySummary();
+  const profileAvatar = document.getElementById('profile-avatar-img');
+  profileAvatar.onerror = function(){ this.onerror=null; this.src = DEFAULT_AVATAR; };
+  profileAvatar.src = userAvatarSrc(currentUser);
+  document.getElementById('profile-name').textContent = currentUser.displayName;
+  document.getElementById('profile-username').textContent = '@' + currentUser.username;
+  document.getElementById('profile-role').textContent = currentUser.role === 'admin' ? '👑 Admin' : 'ຜູ້ໃຊ້ທົ່ວໄປ';
+  document.getElementById('profile-win').textContent = summary.winCount || 0;
+  document.getElementById('profile-lose').textContent = summary.loseCount || 0;
+  document.getElementById('profile-pending').textContent = summary.pendingCount || 0;
+}
+
+document.getElementById('profile-avatar-file').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if (!file || !currentUser) return;
+  if (file.size > 4 * 1024 * 1024) { showToast('ຮູບໃຫຍ່ເກີນໄປ (ຈຳກັດ 4MB) ❗'); return; }
+  const reader = new FileReader();
+  reader.onload = async () => {
+    const dataUrl = reader.result;
+    const base64 = dataUrl.split(',')[1];
+    document.getElementById('profile-avatar-img').src = dataUrl;
+    showToast('ກຳລັງອັບໂຫຼດຮູບໂປຟາຍ... ⏳');
+    try {
+      const res = await callServer('uploadAvatar', { base64, mimeType: file.type || 'image/png', fileName: file.name, userId: currentUser.id });
+      if (res && res.error) { showToast('ອັບໂຫຼດບໍ່ສຳເລັດ: ' + res.error); return; }
+      if (res && res.url) {
+        currentUser.avatar = res.url;
+        renderUserChrome();
+        showToast('ປ່ຽນຮູບໂປຟາຍສຳເລັດ ✅');
+      }
+    } catch (err) {
+      showToast('ອັບໂຫຼດລົ້ມເຫຼວ: ' + err.message);
+    }
+  };
+  reader.readAsDataURL(file);
+});
+
+/* =================================================================
+   NAVIGATION
+================================================================= */
+function goto(tab){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.style.display='none');
+  document.getElementById('tab-'+tab).style.display='block';
+  document.querySelectorAll('.nav-item[data-tab]').forEach(n=>n.classList.toggle('active', n.dataset.tab===tab));
+  document.querySelectorAll('.bottom-nav .item[data-tab]').forEach(n=>n.classList.toggle('active', n.dataset.tab===tab));
+}
+document.querySelectorAll('[data-tab]').forEach(el=>el.addEventListener('click', ()=>goto(el.dataset.tab)));
+document.querySelectorAll('[data-goto]').forEach(el=>el.addEventListener('click', ()=>goto(el.dataset.goto)));
+document.getElementById('menuBtn').addEventListener('click', ()=>goto('profile'));
+
+/* =================================================================
+   ANIMAL PICKERS
+================================================================= */
+function renderAnimalPickers(){
+  ['bet-animal-picker','rd-animal-picker'].forEach(id=>{
+    const el = document.getElementById(id);
+    el.innerHTML = ANIMALS.map((a,i)=>{
+      const safeId = (a.Id != null && String(a.Id).trim() !== '') ? String(a.Id).trim() : ('idx_'+i);
+      const grad = ICON_GRADIENTS[i % ICON_GRADIENTS.length];
+      return `<div class="animal-pick" data-id="${safeId}" style="background:${grad}" title="${a.Name||''}">${a.Icon||'❔'}<span class="pick-name">${a.Name||''}</span></div>`;
+    }).join('');
+    el.querySelectorAll('.animal-pick').forEach(p=>{
+      p.addEventListener('click', ()=>{
+        if (id === 'rd-animal-picker') {
+          const selected = el.querySelectorAll('.selected');
+          if (!p.classList.contains('selected') && selected.length >= 3) return;
+        }
+        p.classList.toggle('selected');
+      });
+    });
+  });
+}
+function getSelectedAnimals(pickerId){
+  const el = document.getElementById(pickerId);
+  return [...el.querySelectorAll('.selected')]
+    .map(p => (p.getAttribute('data-id') || '').trim())
+    .filter(Boolean);
+}
+
+/* =================================================================
+   BET MODAL
+================================================================= */
+function openBetModal(id){
+  editingBetId = id || null;
+  const bet = id ? (BETS||[]).find(b=>Number(b.ID)===id) : null;
+  if (bet && currentUser.role !== 'admin' && String(bet.Username||'').toLowerCase() !== currentUser.username.toLowerCase()) {
+    showToast('ທ່ານເບິ່ງໄດ້ສະເພາະລາຍການຂອງໂຕເອງເທົ່ານັ້ນ');
+    return;
+  }
+  document.getElementById('betModalTitle').textContent = bet ? 'ແກ້ໄຂລາຍການ' : 'ບັນທຶກລາຍການແທງໃໝ່';
+  document.getElementById('bet-roundId').value = bet ? bet.RoundID : ((ROUNDS[0] && ROUNDS[0].RoundID) || '');
+  document.getElementById('bet-roundDateTime').value = bet ? displayToIso(bet.RoundDateTime) : isoLocalFromDate(new Date());
+  document.getElementById('bet-stake').value = bet ? bet.Stake : '';
+  document.getElementById('bet-payout').value = bet ? bet.Payout : '';
+  document.getElementById('bet-agent').value = bet ? bet.Agent : '';
+  document.getElementById('bet-note').value = bet ? bet.Note : '';
+  currentStatus = bet ? String(bet.Status).toUpperCase() : 'PENDING';
+  updateStatusPicker();
+  renderAnimalPickers();
+  const picker = document.getElementById('bet-animal-picker');
+  if (bet) String(bet.Animals||'').split(',').filter(Boolean).forEach(a=>{
+    const el = picker.querySelector(`[data-id="${CSS.escape(a)}"]`); if (el) el.classList.add('selected');
+  });
+  document.getElementById('deleteBetBtn').style.display = bet ? 'block' : 'none';
+  document.getElementById('betOverlay').classList.add('show');
+}
+function closeBetModal(){ document.getElementById('betOverlay').classList.remove('show'); }
+
+function updateStatusPicker(){
+  document.querySelectorAll('.status-pick[data-status]').forEach(p=>p.classList.toggle('sel', p.dataset.status===currentStatus));
+}
+document.querySelectorAll('.status-pick[data-status]').forEach(p=>{
+  p.addEventListener('click', ()=>{ currentStatus = p.dataset.status; updateStatusPicker(); });
+});
+
+document.getElementById('fabAdd').addEventListener('click', ()=>openBetModal(null));
+document.getElementById('fabAddMobile').addEventListener('click', ()=>openBetModal(null));
+document.getElementById('cancelBetBtn').addEventListener('click', closeBetModal);
+
+document.getElementById('saveBetBtn').addEventListener('click', async ()=>{
+  const animals = getSelectedAnimals('bet-animal-picker');
+  if (animals.length === 0) { showToast('ກະລຸນາເລືອກສັດຢ່າງໜ້ອຍ 1 ໂຕ ❗'); return; }
+  const roundId = document.getElementById('bet-roundId').value.trim();
+  const stake = document.getElementById('bet-stake').value;
+  if (!roundId) { showToast('ກະລຸນາໃສ່ເລກງວດ ❗'); return; }
+  if (!stake || Number(stake) <= 0) { showToast('ກະລຸນາໃສ່ຈຳນວນເງິນແທງ ❗'); return; }
+
+  const payload = {
+    id: editingBetId,
+    roundId,
+    roundDateTime: isoToDisplay(document.getElementById('bet-roundDateTime').value),
+    animals,
+    stake,
+    payout: document.getElementById('bet-payout').value,
+    agent: document.getElementById('bet-agent').value,
+    note: document.getElementById('bet-note').value,
+    status: currentStatus,
+    username: currentUser.username,
+    isAdmin: currentUser.role === 'admin'
+  };
+  try {
+    const res = editingBetId ? await callServer('updateBet', payload) : await callServer('addBet', payload);
+    if (res && res.error) { showToast('ບໍ່ສຳເລັດ: ' + res.error); return; }
+    showToast('ບັນທຶກສຳເລັດ ✅');
+    closeBetModal();
+    await refreshData();
+  } catch (err) {
+    showToast('ບັນທຶກລົ້ມເຫຼວ: ' + err.message);
+  }
+});
+
+document.getElementById('deleteBetBtn').addEventListener('click', async ()=>{
+  if (!editingBetId) return;
+  try {
+    await callServer('deleteBet', editingBetId);
+    showToast('ລຶບແລ້ວ 🗑️');
+    closeBetModal();
+    await refreshData();
+  } catch (err) {
+    showToast('ລຶບລົ້ມເຫຼວ: ' + err.message);
+  }
+});
+
+/* =================================================================
+   ADMIN — sub-tabs
+================================================================= */
+document.querySelectorAll('.pill-tabs .pill[data-atab]').forEach(p=>{
+  p.addEventListener('click', ()=>{
+    document.querySelectorAll('.pill-tabs .pill[data-atab]').forEach(x=>x.classList.remove('active'));
+    p.classList.add('active');
+    ['brand','theme','animals','rounds','users'].forEach(t=>{
+      document.getElementById('atab-'+t).style.display = (t===p.dataset.atab) ? 'block' : 'none';
+    });
+    document.getElementById('atab-brand-save-wrap').style.display = (p.dataset.atab==='users') ? 'none' : 'block';
+    if (p.dataset.atab === 'users') loadUsersList();
+  });
+});
+
+/* ---- Logo upload ---- */
+document.getElementById('cfg-logoFile').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 4 * 1024 * 1024) { showToast('ຮູບໃຫຍ່ເກີນໄປ (ຈຳກັດ 4MB) ❗'); return; }
+  const reader = new FileReader();
+  reader.onload = async () => {
+    const dataUrl = reader.result;
+    const base64 = dataUrl.split(',')[1];
+    document.getElementById('logoPreview').src = dataUrl;
+    showToast('ກຳລັງອັບໂຫຼດໂລໂກ້... ⏳');
+    try {
+      const res = await callServer('uploadLogo', { base64, mimeType: file.type || 'image/png', fileName: file.name });
+      if (res && res.error) { showToast('ອັບໂຫຼດບໍ່ສຳເລັດ: ' + res.error); return; }
+      if (res && res.url) {
+        CONFIG.logoUrl = res.url;
+        renderBrand();
+        showToast('ປ່ຽນໂລໂກ້ສຳເລັດ ✅');
+      }
+    } catch (err) {
+      showToast('ອັບໂຫຼດລົ້ມເຫຼວ: ' + err.message);
+    }
+  };
+  reader.readAsDataURL(file);
+});
+
+function renderAdminForms(){
+  document.getElementById('cfg-appTitle').value = CONFIG.appTitle||'';
+  document.getElementById('cfg-appSubtitle').value = CONFIG.appSubtitle||'';
+  document.getElementById('cfg-homeGreeting').value = CONFIG.homeGreeting||'';
+  document.getElementById('cfg-labelIncome').value = CONFIG.labelIncome||'';
+  document.getElementById('cfg-labelExpense').value = CONFIG.labelExpense||'';
+  document.getElementById('cfg-labelNet').value = CONFIG.labelNet||'';
+  document.getElementById('cfg-payoutMultiplier').value = CONFIG.payoutMultiplier||30;
+  document.getElementById('cfg-themePrimary').value = CONFIG.themePrimary||'#8B7CF6';
+  document.getElementById('cfg-themeAccent').value = CONFIG.themeAccent||'#FFA94D';
+  document.getElementById('cfg-themeWin').value = CONFIG.themeWin||'#2FB88B';
+  document.getElementById('cfg-themeLose').value = CONFIG.themeLose||'#F26D6D';
+  document.getElementById('logoPreview').src = currentLogoSrc();
+  renderAnimalConfigList();
+  renderRoundsList();
+  loadUsersList();
+}
+
+function renderAnimalConfigList(){
+  const el = document.getElementById('animalConfigList');
+  el.innerHTML = (ANIMALS||[]).map((a,i)=>`
+    <div class="config-list-item" data-idx="${i}">
+      <input type="text" class="a-icon" value="${a.Icon||''}" style="width:50px; text-align:center;">
+      <input type="text" class="a-name" value="${a.Name||''}" placeholder="ຊື່ສັດ">
+      <span class="del">🗑️</span>
+    </div>`).join('');
+  el.querySelectorAll('.del').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      const idx = Number(e.target.closest('.config-list-item').dataset.idx);
+      if (ANIMALS.length <= 1) { showToast('ຕ້ອງມີສັດຢ່າງໜ້ອຍ 1 ໂຕ'); return; }
+      ANIMALS.splice(idx,1);
+      renderAnimalConfigList();
+    });
+  });
+}
+document.getElementById('addAnimalBtn').addEventListener('click', ()=>{
+  ANIMALS.push({Id:'animal_'+Date.now(), Name:'ສັດໃໝ່', Icon:'⭐', Order: ANIMALS.length+1});
+  renderAnimalConfigList();
+});
+
+function renderRoundsList(){
+  const el = document.getElementById('roundsList');
+  const rounds = Array.isArray(ROUNDS) ? ROUNDS : [];
+  el.innerHTML = rounds.length ? rounds.slice(0,10).map(r=>`
+    <div class="round-card">
+      <div class="top">
+        <span class="round-id">ງວດທີ ${r.RoundID}</span>
+        <span class="datetime">${r.DateTime}</span>
+      </div>
+      <div class="animals-row">${[r.Animal1,r.Animal2,r.Animal3].filter(Boolean).map(a=>`<div class="animal-chip" style="background:${animalGradient(a)}">${animalIcon(a)}</div>`).join('')}</div>
+      <div class="bet-row" style="display:flex; justify-content:flex-end; padding-top:4px;">
+        <span class="del-round" data-round="${r.RoundID}">🗑️ ລຶບງວດນີ້</span>
+      </div>
+    </div>`).join('') : emptyHtml('ຍັງບໍ່ມີງວດ', 'ບັນທຶກຜົນງວດທຳອິດຂ້າງເທິງ');
+  el.querySelectorAll('.del-round').forEach(btn=>{
+    btn.addEventListener('click', async (e)=>{
+      const roundId = e.target.dataset.round;
+      try {
+        await callServer('deleteRound', roundId);
+        ROUNDS = await callServer('getRounds');
+        renderRoundsList();
+        showToast('ລຶບງວດແລ້ວ 🗑️');
+      } catch (err) { showToast('ລຶບລົ້ມເຫຼວ: ' + err.message); }
+    });
+  });
+}
+
+document.getElementById('saveRoundBtn').addEventListener('click', async ()=>{
+  const selected = getSelectedAnimals('rd-animal-picker');
+  if (selected.length !== 3) { showToast('ກະລຸນາເລືອກ 3 ໂຕ'); return; }
+  const roundId = document.getElementById('rd-id').value.trim();
+  if (!roundId) { showToast('ກະລຸນາໃສ່ເລກງວດ'); return; }
+  const payload = {
+    roundId,
+    dateTime: isoToDisplay(document.getElementById('rd-datetime').value),
+    animal1: selected[0], animal2: selected[1], animal3: selected[2],
+    status: 'CLOSED'
+  };
+  try {
+    const res = await callServer('saveRound', payload);
+    if (res && res.error) { showToast('ບໍ່ສຳເລັດ: ' + res.error); return; }
+    ROUNDS = await callServer('getRounds');
+    renderRoundsList();
+    document.getElementById('rd-id').value = '';
+    document.getElementById('rd-datetime').value = '';
+    document.querySelectorAll('#rd-animal-picker .selected').forEach(x=>x.classList.remove('selected'));
+    const settled = res && res.settled;
+    const settledMsg = settled ? ` (ຕັດງວດ: ຖືກ ${settled.winCount||0} ‧ ບໍ່ຖືກ ${settled.loseCount||0})` : '';
+    showToast('ບັນທຶກຜົນງວດແລ້ວ ✅' + settledMsg);
+    await refreshData();
+  } catch (err) {
+    showToast('ບັນທຶກລົ້ມເຫຼວ: ' + err.message);
+  }
+});
+
+document.getElementById('saveConfigBtn').addEventListener('click', async ()=>{
+  const items = [...document.querySelectorAll('#animalConfigList .config-list-item')];
+  const newAnimals = items.map((item,i)=>({
+    id: (ANIMALS[i] && ANIMALS[i].Id) || ('animal_'+Date.now()+'_'+i),
+    icon: item.querySelector('.a-icon').value,
+    name: item.querySelector('.a-name').value
+  }));
+  const newConfig = {
+    appTitle: document.getElementById('cfg-appTitle').value,
+    appSubtitle: document.getElementById('cfg-appSubtitle').value,
+    homeGreeting: document.getElementById('cfg-homeGreeting').value,
+    labelIncome: document.getElementById('cfg-labelIncome').value,
+    labelExpense: document.getElementById('cfg-labelExpense').value,
+    labelNet: document.getElementById('cfg-labelNet').value,
+    payoutMultiplier: Number(document.getElementById('cfg-payoutMultiplier').value) || 30,
+    themePrimary: document.getElementById('cfg-themePrimary').value,
+    themeAccent: document.getElementById('cfg-themeAccent').value,
+    themeWin: document.getElementById('cfg-themeWin').value,
+    themeLose: document.getElementById('cfg-themeLose').value
+  };
+  try {
+    const [cfgRes, aniRes] = await Promise.all([callServer('saveConfig', newConfig), callServer('saveAnimals', newAnimals)]);
+    if ((cfgRes && cfgRes.error) || (aniRes && aniRes.error)) {
+      showToast('ບໍ່ສຳເລັດ: ' + ((cfgRes&&cfgRes.error)||(aniRes&&aniRes.error)));
+      return;
+    }
+    CONFIG = {...CONFIG, ...newConfig};
+    ANIMALS = await callServer('getAnimals');
+    applyTheme(); renderBrand(); renderAnimalPickers(); renderHistory(); renderAdminForms();
+    showToast('ບັນທຶກການຕັ້ງຄ່າແລ້ວ 🎨');
+  } catch (err) {
+    showToast('ບັນທຶກລົ້ມເຫຼວ: ' + err.message);
+  }
+});
+
+/* =================================================================
+   ADMIN — USERS MANAGEMENT
+================================================================= */
+let USERS_CACHE = [];
+async function loadUsersList(){
+  try {
+    const res = await callServer('getUsers');
+    if (!Array.isArray(res)) { showToast('ໂຫຼດລາຍຊື່ຜູ້ໃຊ້ບໍ່ໄດ້: ' + (res && res.error ? res.error : 'unknown error')); USERS_CACHE = []; }
+    else USERS_CACHE = res;
+  } catch (err) {
+    showToast('ໂຫຼດລາຍຊື່ຜູ້ໃຊ້ລົ້ມເຫຼວ: ' + err.message);
+    USERS_CACHE = [];
+  }
+  renderUsersList();
+}
+function renderUsersList(){
+  const el = document.getElementById('usersList');
+  el.innerHTML = USERS_CACHE.length ? USERS_CACHE.map(u=>`
+    <div class="user-row" data-id="${u.id}">
+      <img src="${userAvatarSrc(u)}" alt="avatar" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';">
+      <div class="ur-mid">
+        <div class="ur-name">${u.displayName}${u.role==='admin'?' 👑':''}</div>
+        <div class="ur-sub">@${u.username} · ${u.role==='admin'?'Admin':'ຜູ້ໃຊ້ທົ່ວໄປ'}</div>
+      </div>
+      <div class="ur-actions">
+        <span class="edit-user" data-id="${u.id}">✏️</span>
+      </div>
+    </div>`).join('') : emptyHtml('ຍັງບໍ່ມີຜູ້ໃຊ້', 'ກົດ "ເພີ່ມຜູ້ໃຊ້ໃໝ່" ຂ້າງລຸ່ມ');
+  el.querySelectorAll('.edit-user').forEach(btn=>{
+    btn.addEventListener('click', ()=>openUserModal(Number(btn.dataset.id)));
+  });
+}
+document.getElementById('addUserBtn').addEventListener('click', ()=>openUserModal(null));
+
+function setSelectedRole(role){
+  selectedUserRole = role;
+  document.querySelectorAll('.role-pick').forEach(p=>p.classList.toggle('sel', p.dataset.role===role));
+}
+document.querySelectorAll('.role-pick').forEach(p=>{
+  p.addEventListener('click', ()=>setSelectedRole(p.dataset.role));
+});
+
+function openUserModal(id){
+  editingUserId = id || null;
+  const u = id ? USERS_CACHE.find(x=>Number(x.id)===id) : null;
+  document.getElementById('userModalTitle').textContent = u ? 'ແກ້ໄຂຜູ້ໃຊ້' : 'ເພີ່ມຜູ້ໃຊ້ໃໝ່';
+  document.getElementById('user-username').value = u ? u.username : '';
+  document.getElementById('user-displayName').value = u ? u.displayName : '';
+  document.getElementById('user-password').value = '';
+  document.getElementById('user-password').placeholder = u ? 'ປ່ອຍວ່າງໄວ້ຖ້າບໍ່ປ່ຽນລະຫັດ' : 'ຕັ້ງລະຫັດຜ່ານ';
+  document.getElementById('user-password-label').textContent = u ? 'ລະຫັດຜ່ານໃໝ່ (ບໍ່ບັງຄັບ)' : 'ລະຫັດຜ່ານ';
+  setSelectedRole(u ? (u.role||'user') : 'user');
+  document.getElementById('deleteUserBtn').style.display = u ? 'block' : 'none';
+  document.getElementById('userOverlay').classList.add('show');
+}
+function closeUserModal(){ document.getElementById('userOverlay').classList.remove('show'); }
+document.getElementById('cancelUserBtn').addEventListener('click', closeUserModal);
+
+document.getElementById('saveUserBtn').addEventListener('click', async ()=>{
+  const username = document.getElementById('user-username').value.trim();
+  const displayName = document.getElementById('user-displayName').value.trim();
+  const password = document.getElementById('user-password').value.trim();
+  if (!username) { showToast('ກະລຸນາໃສ່ຊື່ຜູ້ໃຊ້ ❗'); return; }
+  if (!editingUserId && !password) { showToast('ກະລຸນາຕັ້ງລະຫັດຜ່ານ ❗'); return; }
+  const payload = { id: editingUserId, username, displayName: displayName || username, role: selectedUserRole };
+  if (password) payload.password = password;
+  try {
+    const res = await callServer('saveUser', payload);
+    if (res && res.error) { showToast('ບໍ່ສຳເລັດ: ' + res.error); return; }
+    showToast('ບັນທຶກຜູ້ໃຊ້ສຳເລັດ ✅');
+    closeUserModal();
+    await loadUsersList();
+  } catch (err) {
+    showToast('ບັນທຶກລົ້ມເຫຼວ: ' + err.message);
+  }
+});
+
+document.getElementById('deleteUserBtn').addEventListener('click', async ()=>{
+  if (!editingUserId) return;
+  if (currentUser && Number(currentUser.id) === Number(editingUserId)) {
+    showToast('ລຶບບັນຊີຕົນເອງບໍ່ໄດ້ ໃນຂະນະທີ່ Login ຢູ່');
+    return;
+  }
+  try {
+    const res = await callServer('deleteUser', editingUserId);
+    if (res && res.error) { showToast('ບໍ່ສຳເລັດ: ' + res.error); return; }
+    showToast('ລຶບຜູ້ໃຊ້ແລ້ວ 🗑️');
+    closeUserModal();
+    await loadUsersList();
+  } catch (err) {
+    showToast('ລຶບລົ້ມເຫຼວ: ' + err.message);
+  }
+});
+
+/* =================================================================
+   BOOT
+================================================================= */
+bootstrap();
+</script>
+</body>
+</html>
