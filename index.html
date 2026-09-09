@@ -118,6 +118,7 @@
     display:flex; align-items:center; gap:12px; cursor:pointer;
   }
   .tx-icon{width:46px; height:46px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:21px; flex-shrink:0; color:#fff; box-shadow:0 6px 14px rgba(0,0,0,.1);}
+  .tx-icon img{width:100%; height:100%; object-fit:cover; border-radius:14px;}
   .tx-mid{flex:1; min-width:0;}
   .tx-title{font-weight:700; font-size:14.5px; color:var(--text);}
   .tx-sub{font-size:11.5px; color:var(--text-dim); margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
@@ -143,6 +144,7 @@
     width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:17px;
     color:#fff; box-shadow:0 4px 10px rgba(0,0,0,.1);
   }
+  .animal-chip img{width:100%; height:100%; object-fit:cover; border-radius:50%;}
   .round-card .del-round{font-size:12px; color:var(--lose); cursor:pointer; font-weight:600;}
 
   /* ---------- FAB (desktop only; mobile uses nav-fab) ---------- */
@@ -190,6 +192,7 @@
     width:54px; height:54px; border-radius:16px; display:flex; align-items:center;
     justify-content:center; font-size:24px; cursor:pointer; border:3px solid transparent; color:#fff; position:relative;
   }
+  .animal-pick img{width:100%; height:100%; object-fit:cover; border-radius:16px;}
   .animal-pick.selected{border-color:var(--text); box-shadow:0 0 0 3px rgba(45,43,69,.08);}
   .animal-pick .pick-name{position:absolute; bottom:-16px; left:50%; transform:translateX(-50%); font-size:9px; color:var(--text-dim); white-space:nowrap; font-weight:600;}
   .animal-pick .pick-count{position:absolute; top:-8px; right:-8px; width:22px; height:22px; border-radius:50%; background:var(--text); color:#fff; font-size:12px; font-weight:800; display:none; align-items:center; justify-content:center; border:2px solid #fff; z-index:2;}
@@ -217,6 +220,23 @@
   .config-list-item{display:flex; align-items:center; gap:10px; background:var(--card); padding:10px 12px; border-radius:12px; margin-bottom:8px; border:1px solid var(--border);}
   .config-list-item input[type=text]{flex:1;}
   .config-list-item .del{color:var(--lose); cursor:pointer; font-size:18px;}
+
+  /* ---------- Animal icon preview + upload (admin > sat/icon) ---------- */
+  .a-icon-preview{width:50px; height:50px; border-radius:12px; overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:20px; color:#fff;}
+  .a-icon-preview img{width:100%; height:100%; object-fit:cover;}
+  .a-icon-upload-btn{white-space:nowrap; font-size:11px !important; padding:8px 10px !important;}
+
+  /* ---------- Ranked round-result picker ---------- */
+  .rank-slots{display:flex; gap:10px; margin:10px 0 4px;}
+  .rank-slot{flex:1; background:var(--card); border:2px dashed var(--border); border-radius:16px; padding:16px 8px 10px; text-align:center; min-height:104px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; position:relative;}
+  .rank-slot.filled{border-style:solid; border-color:var(--primary);}
+  .rank-slot .rs-badge{position:absolute; top:-10px; left:50%; transform:translateX(-50%); background:var(--hero-gradient); color:#fff; font-size:10px; font-weight:800; padding:2px 10px; border-radius:20px; white-space:nowrap;}
+  .rank-slot .rs-icon{width:44px; height:44px; border-radius:14px; overflow:hidden; background:var(--primary-soft); display:flex; align-items:center; justify-content:center; font-size:20px;}
+  .rank-slot .rs-icon img{width:100%; height:100%; object-fit:cover; border-radius:14px;}
+  .rank-slot .rs-name{font-size:11px; font-weight:700; color:var(--text);}
+  .rank-slot .rs-empty{font-size:11px; color:var(--text-dim);}
+  .rank-slot .rs-controls{display:flex; gap:6px; margin-top:2px;}
+  .rank-slot .rs-controls span{cursor:pointer; font-size:12px; background:var(--card-2); border-radius:8px; padding:2px 7px; border:1px solid var(--border);}
 
   .pill-tabs-wrap{position:relative; margin-bottom:16px;}
   .pill-tabs{display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none;}
@@ -447,6 +467,7 @@
       </div>
 
       <div id="atab-animals" style="display:none;">
+        <div class="hint" style="margin-bottom:12px;">ກົດ "📷 ຮູບ" ຢູ່ແຕ່ລະແຖວເພື່ອອັບໂຫຼດຮູບໄອຄອນຂອງສັດແຕ່ລະໂຕ (ຮູບຈະຖືກເກັບໄວ້ໃນ Google Drive ຂອງທ່ານເອງ) — ຢ່າລືມກົດ "ບັນທຶກການຕັ້ງຄ່າ" ຂ້າງລຸ່ມຫຼັງແກ້ໄຂແລ້ວ</div>
         <div id="animalConfigList"></div>
         <button class="btn secondary" id="addAnimalBtn">+ ເພີ່ມສັດ</button>
       </div>
@@ -454,7 +475,8 @@
       <div id="atab-rounds" style="display:none;">
         <div class="field"><label>ເລກງວດ</label><input type="text" id="rd-id" placeholder="36260150"></div>
         <div class="field"><label>ວັນທີ-ເວລາງວດ</label><input type="datetime-local" id="rd-datetime"></div>
-        <label style="font-size:12.5px; color:var(--text-dim); font-weight:600;">ສັດຖືກ 3 ໂຕ — ກົດເພື່ອເພີ່ມ, ກົດຄົບແລ້ວກົດອີກ = ຣີເຊັດ (ຊ້ຳກັນໄດ້, ລວມຕ້ອງ = 3)</label>
+        <label style="font-size:12.5px; color:var(--text-dim); font-weight:600;">ຜົນອອກ 3 ອັນດັບ — ກົດເລືອກສັດຕາມລຳດັບ (ອັນດັບ 1 → 3), ສັດຊ້ຳກັນໄດ້, ໃຊ້ລູກສອນ/✖️ ໃນຊ່ອງອັນດັບເພື່ອສະຫຼັບ ຫຼື ລຶບ</label>
+        <div class="rank-slots" id="rd-rank-slots"></div>
         <div class="animal-picker" id="rd-animal-picker" style="margin:8px 0 22px;"></div>
         <button class="btn" id="saveRoundBtn">ບັນທຶກຜົນງວດ + ຕັດງວດອັດຕະໂນມັດ</button>
         <div class="section-title">ງວດທີ່ບັນທຶກແລ້ວ</div>
@@ -573,8 +595,15 @@ const DEFAULT_AVATAR = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
   <path d="M20 88c4-22 20-32 30-32s26 10 30 32" fill="#fff" opacity="0.9"/>
 </svg>`);
 
+/* ============ ໄອຄອນສັດ ຄ່າເລີ່ມຕົ້ນ ຖ້າຮູບໂຫຼດບໍ່ຂຶ້ນ (ຮູບເສຍ / ບໍ່ມີເນັດ) ============ */
+const DEFAULT_ANIMAL_ICON = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" rx="20" fill="#EFEBFF"/>
+  <text x="50" y="66" font-size="46" text-anchor="middle" fill="#8B7CF6">?</text>
+</svg>`);
+
 /* =================================================================
-   COLOR PALETTE FOR ANIMAL ICONS
+   COLOR PALETTE FOR ANIMAL ICON BACKGROUNDS
 ================================================================= */
 const ICON_GRADIENTS = [
   'linear-gradient(135deg,#FF9F68,#FF6B6B)',
@@ -590,6 +619,23 @@ function animalGradient(id){
   const i = idx >= 0 ? idx : 0;
   return ICON_GRADIENTS[i % ICON_GRADIENTS.length];
 }
+
+/* =================================================================
+   ICON HELPERS — ໄອຄອນສັດຕອນນີ້ເປັນ URL ຮູບພາບ (ບໍ່ແມ່ນ emoji ອີກຕໍ່ໄປ),
+   ຟັງຊັນເຫຼົ່ານີ້ຈະຮູ້ເອງວ່າຄ່າໃດເປັນ URL ຮູບ ແລ້ວສະແດງເປັນ <img>,
+   ຖ້າບໍ່ແມ່ນ URL (ເຊັ່ນຍັງບໍ່ໄດ້ຕັ້ງຄ່າ) ຈະສະແດງເປັນຂໍ້ຄວາມ/ອັກສອນແທນ.
+================================================================= */
+function isImageUrl(v){ return typeof v === 'string' && /^https?:\/\//i.test(v.trim()); }
+function iconInnerHtml(iconVal){
+  const val = (iconVal == null ? '' : String(iconVal)).trim();
+  if (isImageUrl(val)) return `<img src="${val}" alt="" onerror="this.onerror=null;this.src='${DEFAULT_ANIMAL_ICON}';">`;
+  return val || '❔';
+}
+function animalIconHtml(id){
+  const a = ANIMALS.find(x=>x.Id===id);
+  return iconInnerHtml(a ? a.Icon : '');
+}
+function escAttr(s){ return String(s == null ? '' : s).replace(/"/g,'&quot;'); }
 
 /* =================================================================
    STATE
@@ -649,9 +695,12 @@ function callServer(fn, arg){
 ================================================================= */
 function demoFallback(fn, args){
   const demoAnimals = [
-    {Id:'crab',Name:'ปู',Icon:'🦀',Order:1},{Id:'fish',Name:'ปา',Icon:'🐟',Order:2},
-    {Id:'gourd',Name:'ນ້ຳເຕົ້າ',Icon:'🏺',Order:3},{Id:'tiger',Name:'ເສືອ',Icon:'🐯',Order:4},
-    {Id:'rooster',Name:'ໄກ່',Icon:'🐓',Order:5},{Id:'shrimp',Name:'ກຸ້ງ',Icon:'🦐',Order:6}
+    {Id:'crab',Name:'ปู',Icon:'https://i.postimg.cc/BnZLb6GK/Pu.png',Order:1},
+    {Id:'fish',Name:'ปา',Icon:'https://i.postimg.cc/rwy0smLN/Pa.png',Order:2},
+    {Id:'gourd',Name:'ນ້ຳເຕົ້າ',Icon:'https://i.postimg.cc/P5fpJxk3/Tao.png',Order:3},
+    {Id:'tiger',Name:'ເສືອ',Icon:'https://i.postimg.cc/ht4zvjqM/Sea.png',Order:4},
+    {Id:'rooster',Name:'ໄກ່',Icon:'https://i.postimg.cc/K8ckjzyt/Kai.png',Order:5},
+    {Id:'shrimp',Name:'ກຸ້ງ',Icon:'https://i.postimg.cc/y86gxdzc/Koung.png',Order:6}
   ];
   const demoBets = [
     {ID:1,Timestamp:new Date(),RoundID:'36260149',RoundDateTime:'08/09/2026 13:05',Animals:'crab,rooster,fish',Stake:40000,Status:'WIN',Payout:120000,Agent:'BCELONE',Username:'admin'},
@@ -665,7 +714,7 @@ function demoFallback(fn, args){
     return { error: 'ໂໝດ Demo (ຍັງເຊື່ອມ Backend ບໍ່ໄດ້): ໃຊ້ admin / 1234' };
   }
   if (fn==='getUsers') return [{id:1, username:'admin', displayName:'ແອັດມິນ (Demo)', avatar:'', role:'admin', createdAt:new Date()}];
-  if (fn==='saveUser' || fn==='deleteUser' || fn==='uploadAvatar') return {ok:true, url:''};
+  if (fn==='saveUser' || fn==='deleteUser' || fn==='uploadAvatar' || fn==='uploadAnimalIcon') return {ok:true, url:''};
   if (fn==='getAll') return {
     config: defaultConfigJs(), animals: demoAnimals, bets: demoBets, rounds: [],
     summary: {income:120000, expense:10000, net:110000, winCount:1, loseCount:1, pendingCount:0, byDay:[{day:'2026-09-08', income:120000, expense:10000}], byAnimal:[{animal:'crab',count:1},{animal:'fish',count:1}]}
@@ -978,6 +1027,14 @@ function renderHome(summary){
   attachBetCardEvents(list);
 }
 
+function rankedAnimalChipsHtml(animals){
+  return animals.map((a,idx)=>`
+    <div class="animal-chip" style="background:${animalGradient(a)}; position:relative;" title="${animalName(a)} - ອັນດັບ ${idx+1}">
+      ${animalIconHtml(a)}
+      <span style="position:absolute;bottom:-6px;right:-4px;background:var(--text);color:#fff;font-size:9px;font-weight:800;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">${idx+1}</span>
+    </div>`).join('');
+}
+
 function renderLatestRoundCard(){
   const box = document.getElementById('latestRoundCard');
   if (!box) return;
@@ -991,7 +1048,7 @@ function renderLatestRoundCard(){
         <span class="round-id">ງວດທີ ${latest.RoundID}</span>
         <span class="datetime">${latest.DateTime}</span>
       </div>
-      <div class="animals-row">${animals.map(a=>`<div class="animal-chip" style="background:${animalGradient(a)}" title="${animalName(a)}">${animalIcon(a)}</div>`).join('')}</div>
+      <div class="animals-row">${rankedAnimalChipsHtml(animals)}</div>
     </div>`;
 }
 
@@ -1006,12 +1063,12 @@ function betCardHtml(b){
   const sign = status === 'WIN' ? '+' : (status === 'LOSE' ? '−' : '');
   const firstAnimal = animals[0];
   const iconGrad = firstAnimal ? animalGradient(firstAnimal) : ICON_GRADIENTS[0];
-  const iconEmoji = firstAnimal ? animalIcon(firstAnimal) : '❔';
-  const animalNames = animals.map(a=>animalIcon(a)).join(' ');
+  const iconHtml = firstAnimal ? animalIconHtml(firstAnimal) : '❔';
+  const animalNames = animals.map(a=>animalName(a)).join(', ');
   const ownerTag = (currentUser && currentUser.role === 'admin' && b.Username) ? (' · 👤 '+b.Username) : '';
   return `
   <div class="tx-row" data-id="${b.ID}">
-    <div class="tx-icon" style="background:${iconGrad}">${iconEmoji}</div>
+    <div class="tx-icon" style="background:${iconGrad}">${iconHtml}</div>
     <div class="tx-mid">
       <div class="tx-title">ງວດທີ ${b.RoundID || '-'}</div>
       <div class="tx-sub">${b.RoundDateTime||''} ${animalNames ? '· '+animalNames : ''} ${b.Agent ? '· '+b.Agent : ''}${ownerTag}</div>
@@ -1114,7 +1171,7 @@ function renderStats(summary){
   if (animalChart) animalChart.destroy();
   animalChart = new Chart(ctx3, {
     type:'bar',
-    data:{ labels: byAnimal.map(a => (animalIcon(a.animal)+' '+animalName(a.animal))), datasets:[
+    data:{ labels: byAnimal.map(a => animalName(a.animal)), datasets:[
       {label:'ຈຳນວນຄັ້ງ', data: byAnimal.map(a=>a.count), backgroundColor:'#8B7CF6', borderRadius:8}
     ]},
     options:{ indexAxis:'y', responsive:true, plugins:{legend:{display:false}},
@@ -1190,7 +1247,7 @@ function renderAnimalPickers(){
   el.innerHTML = ANIMALS.map((a,i)=>{
     const safeId = (a.Id != null && String(a.Id).trim() !== '') ? String(a.Id).trim() : ('idx_'+i);
     const grad = ICON_GRADIENTS[i % ICON_GRADIENTS.length];
-    return `<div class="animal-pick" data-id="${safeId}" style="background:${grad}" title="${a.Name||''}">${a.Icon||'❔'}<span class="pick-name">${a.Name||''}</span></div>`;
+    return `<div class="animal-pick" data-id="${safeId}" style="background:${grad}" title="${a.Name||''}">${iconInnerHtml(a.Icon)}<span class="pick-name">${a.Name||''}</span></div>`;
   }).join('');
   el.querySelectorAll('.animal-pick').forEach(p=>{
     p.addEventListener('click', ()=> p.classList.toggle('selected'));
@@ -1204,38 +1261,62 @@ function getSelectedAnimals(pickerId){
     .filter(Boolean);
 }
 
-/* ---- ROUND RESULT picker: ແຕ່ລະໂຕມີຕົວນັບ 0-3, ຊ້ຳກັນໄດ້, ລວມ = 3 ---- */
-let rdAnimalCounts = {};
-function renderRoundAnimalPicker(){
-  const el = document.getElementById('rd-animal-picker');
-  el.innerHTML = ANIMALS.map((a,i)=>{
-    const safeId = (a.Id != null && String(a.Id).trim() !== '') ? String(a.Id).trim() : ('idx_'+i);
-    const grad = ICON_GRADIENTS[i % ICON_GRADIENTS.length];
-    const count = rdAnimalCounts[safeId] || 0;
-    return `<div class="animal-pick${count>0?' selected has-count':''}" data-id="${safeId}" style="background:${grad}" title="${a.Name||''}">${a.Icon||'❔'}<span class="pick-count">${count}</span><span class="pick-name">${a.Name||''}</span></div>`;
+/* ---- ROUND RESULT picker: ເລືອກ 3 ອັນດັບຕາມລຳດັບການກົດ
+   (rdSequence[0] = ອັນດັບ 1, [1] = ອັນດັບ 2, [2] = ອັນດັບ 3),
+   ສັດຊ້ຳກັນໄດ້, ສະຫຼັບ/ລຶບໄດ້ຜ່ານຊ່ອງ "ອັນດັບ" ດ້ານເທິງ ---- */
+let rdSequence = [];
+const RANK_LABELS = ['ອັນດັບ 1 🥇','ອັນດັບ 2 🥈','ອັນດັບ 3 🥉'];
+
+function renderRankSlots(){
+  const wrap = document.getElementById('rd-rank-slots');
+  if (!wrap) return;
+  wrap.innerHTML = [0,1,2].map(i=>{
+    const id = rdSequence[i];
+    if (!id) return `<div class="rank-slot"><span class="rs-badge">${RANK_LABELS[i]}</span><div class="rs-empty">ຍັງບໍ່ໄດ້ເລືອກ</div></div>`;
+    const a = ANIMALS.find(x=>x.Id===id);
+    return `<div class="rank-slot filled">
+      <span class="rs-badge">${RANK_LABELS[i]}</span>
+      <div class="rs-icon">${iconInnerHtml(a?a.Icon:'')}</div>
+      <div class="rs-name">${a?a.Name:id}</div>
+      <div class="rs-controls">
+        ${i>0 ? `<span data-act="up" data-i="${i}" title="ຍ້າຍຂຶ້ນ">⬅️</span>` : ''}
+        <span data-act="remove" data-i="${i}" title="ລຶບ">✖️</span>
+        ${(i<2 && rdSequence[i+1]!==undefined) ? `<span data-act="down" data-i="${i}" title="ຍ້າຍລົງ">➡️</span>` : ''}
+      </div>
+    </div>`;
   }).join('');
-  el.querySelectorAll('.animal-pick').forEach(p=>{
-    p.addEventListener('click', ()=>{
-      const id = p.dataset.id;
-      const total = Object.values(rdAnimalCounts).reduce((s,n)=>s+n,0);
-      const cur = rdAnimalCounts[id] || 0;
-      const remaining = 3 - (total - cur);
-      rdAnimalCounts[id] = (cur < remaining) ? cur + 1 : 0;
+  wrap.querySelectorAll('[data-act]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const i = Number(btn.dataset.i);
+      const act = btn.dataset.act;
+      if (act==='remove') rdSequence.splice(i,1);
+      else if (act==='up' && i>0) { const t=rdSequence[i-1]; rdSequence[i-1]=rdSequence[i]; rdSequence[i]=t; }
+      else if (act==='down' && i<rdSequence.length-1) { const t=rdSequence[i+1]; rdSequence[i+1]=rdSequence[i]; rdSequence[i]=t; }
       renderRoundAnimalPicker();
     });
   });
 }
-function getRoundSelectedAnimals(){
-  const out = [];
-  Object.keys(rdAnimalCounts).forEach(id=>{
-    for (let i=0; i<(rdAnimalCounts[id]||0); i++) out.push(id);
+
+function renderRoundAnimalPicker(){
+  renderRankSlots();
+  const el = document.getElementById('rd-animal-picker');
+  el.innerHTML = ANIMALS.map((a,i)=>{
+    const safeId = (a.Id != null && String(a.Id).trim() !== '') ? String(a.Id).trim() : ('idx_'+i);
+    const grad = ICON_GRADIENTS[i % ICON_GRADIENTS.length];
+    const count = rdSequence.filter(x=>x===safeId).length;
+    return `<div class="animal-pick${count>0?' selected has-count':''}" data-id="${safeId}" style="background:${grad}" title="${a.Name||''}">${iconInnerHtml(a.Icon)}<span class="pick-count">${count}</span><span class="pick-name">${a.Name||''}</span></div>`;
+  }).join('');
+  el.querySelectorAll('.animal-pick').forEach(p=>{
+    p.addEventListener('click', ()=>{
+      if (rdSequence.length >= 3) { showToast('ເລືອກຄົບ 3 ອັນດັບແລ້ວ — ກົດ ✖️ ໃນຊ່ອງອັນດັບກ່ອນ ຈຶ່ງເລືອກໃໝ່ໄດ້'); return; }
+      rdSequence.push(p.dataset.id);
+      renderRoundAnimalPicker();
+    });
   });
-  return out;
 }
-function resetRoundAnimalPicker(){
-  rdAnimalCounts = {};
-  renderRoundAnimalPicker();
-}
+function getRoundSelectedAnimals(){ return rdSequence.slice(); }
+function resetRoundAnimalPicker(){ rdSequence = []; renderRoundAnimalPicker(); }
 
 /* =================================================================
    BET MODAL
@@ -1407,10 +1488,13 @@ function renderAnimalConfigList(){
   const el = document.getElementById('animalConfigList');
   el.innerHTML = (ANIMALS||[]).map((a,i)=>`
     <div class="config-list-item" data-idx="${i}">
-      <input type="text" class="a-icon" value="${a.Icon||''}" style="width:50px; text-align:center;">
+      <div class="a-icon-preview" style="background:${ICON_GRADIENTS[i % ICON_GRADIENTS.length]}">${iconInnerHtml(a.Icon)}</div>
+      <input type="hidden" class="a-icon-value" value="${escAttr(a.Icon||'')}">
+      <label class="logo-upload-btn a-icon-upload-btn">📷 ຮູບ<input type="file" class="a-icon-file" accept="image/*" style="display:none;"></label>
       <input type="text" class="a-name" value="${a.Name||''}" placeholder="ຊື່ສັດ">
       <span class="del">🗑️</span>
     </div>`).join('');
+
   el.querySelectorAll('.del').forEach(btn=>{
     btn.addEventListener('click', (e)=>{
       const idx = Number(e.target.closest('.config-list-item').dataset.idx);
@@ -1419,9 +1503,39 @@ function renderAnimalConfigList(){
       renderAnimalConfigList();
     });
   });
+
+  el.querySelectorAll('.a-icon-file').forEach(inp=>{
+    inp.addEventListener('change', (e)=>{
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 4 * 1024 * 1024) { showToast('ຮູບໃຫຍ່ເກີນໄປ (ຈຳກັດ 4MB) ❗'); return; }
+      const item = e.target.closest('.config-list-item');
+      const idx = Number(item.dataset.idx);
+      const preview = item.querySelector('.a-icon-preview');
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const dataUrl = reader.result;
+        const base64 = dataUrl.split(',')[1];
+        preview.innerHTML = `<img src="${dataUrl}">`;
+        showToast('ກຳລັງອັບໂຫຼດຮູບສັດ... ⏳');
+        try {
+          const res = await callServer('uploadAnimalIcon', { base64, mimeType: file.type || 'image/png', fileName: file.name, animalId: (ANIMALS[idx] && ANIMALS[idx].Id) || '' });
+          if (res && res.error) { showToast('ອັບໂຫຼດບໍ່ສຳເລັດ: ' + res.error); return; }
+          if (res && res.url) {
+            item.querySelector('.a-icon-value').value = res.url;
+            preview.innerHTML = `<img src="${res.url}" onerror="this.onerror=null;this.src='${DEFAULT_ANIMAL_ICON}';">`;
+            showToast('ອັບໂຫຼດຮູບສັດສຳເລັດ ✅ — ຢ່າລືມກົດ "ບັນທຶກການຕັ້ງຄ່າ"');
+          }
+        } catch (err) {
+          showToast('ອັບໂຫຼດລົ້ມເຫຼວ: ' + err.message);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  });
 }
 document.getElementById('addAnimalBtn').addEventListener('click', ()=>{
-  ANIMALS.push({Id:'animal_'+Date.now(), Name:'ສັດໃໝ່', Icon:'⭐', Order: ANIMALS.length+1});
+  ANIMALS.push({Id:'animal_'+Date.now(), Name:'ສັດໃໝ່', Icon:'', Order: ANIMALS.length+1});
   renderAnimalConfigList();
 });
 
@@ -1434,7 +1548,7 @@ function renderRoundsList(){
         <span class="round-id">ງວດທີ ${r.RoundID}</span>
         <span class="datetime">${r.DateTime}</span>
       </div>
-      <div class="animals-row">${[r.Animal1,r.Animal2,r.Animal3].filter(Boolean).map(a=>`<div class="animal-chip" style="background:${animalGradient(a)}">${animalIcon(a)}</div>`).join('')}</div>
+      <div class="animals-row">${rankedAnimalChipsHtml([r.Animal1,r.Animal2,r.Animal3].filter(Boolean))}</div>
       <div class="bet-row" style="display:flex; justify-content:flex-end; padding-top:4px;">
         <span class="del-round" data-round="${r.RoundID}">🗑️ ລຶບງວດນີ້</span>
       </div>
@@ -1470,10 +1584,7 @@ function renderRoundsList(){
 function openRoundEdit(round){
   document.getElementById('rd-id').value = round.RoundID;
   document.getElementById('rd-datetime').value = displayToIso(round.DateTime);
-  rdAnimalCounts = {};
-  [round.Animal1, round.Animal2, round.Animal3].filter(Boolean).forEach(a=>{
-    rdAnimalCounts[a] = (rdAnimalCounts[a] || 0) + 1;
-  });
+  rdSequence = [round.Animal1, round.Animal2, round.Animal3].filter(Boolean);
   renderRoundAnimalPicker();
   showToast('ກຳລັງແກ້ໄຂງວດທີ ' + round.RoundID + ' — ແກ້ແລ້ວກົດ "ບັນທຶກຜົນງວດ" ໄດ້ເລີຍ');
   window.scrollTo({top:0, behavior:'smooth'});
@@ -1481,7 +1592,7 @@ function openRoundEdit(round){
 
 document.getElementById('saveRoundBtn').addEventListener('click', async ()=>{
   const selected = getRoundSelectedAnimals();
-  if (selected.length !== 3) { showToast('ກະລຸນາເລືອກໃຫ້ຄົບ 3 ໂຕ (ລວມ)'); return; }
+  if (selected.length !== 3) { showToast('ກະລຸນາເລືອກໃຫ້ຄົບ 3 ອັນດັບ'); return; }
   const roundId = document.getElementById('rd-id').value.trim();
   if (!roundId) { showToast('ກະລຸນາໃສ່ເລກງວດ'); return; }
   const payload = {
@@ -1511,7 +1622,7 @@ document.getElementById('saveConfigBtn').addEventListener('click', async ()=>{
   const items = [...document.querySelectorAll('#animalConfigList .config-list-item')];
   const newAnimals = items.map((item,i)=>({
     id: (ANIMALS[i] && ANIMALS[i].Id) || ('animal_'+Date.now()+'_'+i),
-    icon: item.querySelector('.a-icon').value,
+    icon: item.querySelector('.a-icon-value').value,
     name: item.querySelector('.a-name').value
   }));
   const newConfig = {
