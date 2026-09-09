@@ -192,6 +192,8 @@
   }
   .animal-pick.selected{border-color:var(--text); box-shadow:0 0 0 3px rgba(45,43,69,.08);}
   .animal-pick .pick-name{position:absolute; bottom:-16px; left:50%; transform:translateX(-50%); font-size:9px; color:var(--text-dim); white-space:nowrap; font-weight:600;}
+  .animal-pick .pick-count{position:absolute; top:-8px; right:-8px; width:22px; height:22px; border-radius:50%; background:var(--text); color:#fff; font-size:12px; font-weight:800; display:none; align-items:center; justify-content:center; border:2px solid #fff; z-index:2;}
+  .animal-pick.has-count .pick-count{display:flex;}
   .status-picker{display:flex; gap:8px;}
   .status-pick{flex:1; text-align:center; padding:10px; border-radius:12px; background:var(--card); cursor:pointer; font-weight:700; font-size:13px; border:2px solid var(--border); color:var(--text-dim);}
   .status-pick.WIN.sel{border-color:var(--win); color:var(--win); background:var(--win-soft);}
@@ -268,7 +270,7 @@
   .profile-stats .ps-label{font-size:10.5px; color:var(--text-dim); margin-bottom:4px;}
   .profile-stats .ps-val{font-size:14px; font-weight:800; color:var(--text);}
 
-  .user-row{display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:12px 14px; margin-bottom:10px; box-shadow:var(--shadow);}
+  .user-row{display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:12px 14px; margin-bottom:10px; box-shadow:var(--shadow); cursor:pointer;}
   .user-row img{width:54px; height:54px; border-radius:50%; object-fit:cover; box-shadow:none; flex-shrink:0;}
   .user-row .ur-mid{flex:1; min-width:0;}
   .user-row .ur-name{font-weight:700; font-size:14px; color:var(--text);}
@@ -346,6 +348,9 @@
           <div class="hero-chip"><div class="hc-label">ຈຳນວນຄັ້ງ</div><div class="hc-val" id="stat-count">0</div></div>
         </div>
       </div>
+
+      <div class="section-title" style="margin-top:0;">ຜົນງວດຫຼ້າສຸດ</div>
+      <div id="latestRoundCard"></div>
 
       <div class="section-title">ຂໍ້ມູນລ່າສຸດ <span class="link" data-goto="history">ເບິ່ງທັງໝົດ →</span></div>
       <div id="recentList"></div>
@@ -449,7 +454,7 @@
       <div id="atab-rounds" style="display:none;">
         <div class="field"><label>ເລກງວດ</label><input type="text" id="rd-id" placeholder="36260150"></div>
         <div class="field"><label>ວັນທີ-ເວລາງວດ</label><input type="datetime-local" id="rd-datetime"></div>
-        <label style="font-size:12.5px; color:var(--text-dim); font-weight:600;">ສັດຖືກ 3 ໂຕ (ບັນທຶກແລ້ວລະບົບຈະຕັດງວດອັດຕະໂນມັດ)</label>
+        <label style="font-size:12.5px; color:var(--text-dim); font-weight:600;">ສັດຖືກ 3 ໂຕ — ກົດເພື່ອເພີ່ມ, ກົດຄົບແລ້ວກົດອີກ = ຣີເຊັດ (ຊ້ຳກັນໄດ້, ລວມຕ້ອງ = 3)</label>
         <div class="animal-picker" id="rd-animal-picker" style="margin:8px 0 22px;"></div>
         <button class="btn" id="saveRoundBtn">ບັນທຶກຜົນງວດ + ຕັດງວດອັດຕະໂນມັດ</button>
         <div class="section-title">ງວດທີ່ບັນທຶກແລ້ວ</div>
@@ -699,6 +704,8 @@ async function bootstrap(){
   loginLogo.src = src;
   document.getElementById('login-title').textContent = CONFIG.appTitle || 'ລະບົບຕິດຕາມການແທງ';
   document.getElementById('login-subtitle').textContent = CONFIG.appSubtitle || '';
+
+  await tryRestoreSession();
 }
 
 /* =================================================================
@@ -716,6 +723,8 @@ document.getElementById('loginBtn').addEventListener('click', doLogin);
 document.getElementById('login-password').addEventListener('keydown', (e)=>{ if (e.key === 'Enter') doLogin(); });
 document.getElementById('login-username').addEventListener('keydown', (e)=>{ if (e.key === 'Enter') doLogin(); });
 
+const SESSION_KEY = 'pupatao_session_user';
+
 async function doLogin(){
   const username = document.getElementById('login-username').value.trim();
   const password = document.getElementById('login-password').value;
@@ -727,6 +736,7 @@ async function doLogin(){
     if (res && res.error) { showLoginError(res.error); return; }
     if (res && res.ok) {
       currentUser = res.user;
+      try { localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser)); } catch(e){}
       hideLoginError();
       document.getElementById('loginScreen').classList.add('hide');
       document.getElementById('app').style.display = 'flex';
@@ -742,11 +752,24 @@ async function doLogin(){
 function doLogout(){
   currentUser = null;
   BETS = []; ROUNDS = [];
+  try { localStorage.removeItem(SESSION_KEY); } catch(e){}
   document.getElementById('app').style.display = 'none';
   document.getElementById('loginScreen').classList.remove('hide');
   document.getElementById('login-username').value = '';
   document.getElementById('login-password').value = '';
   goto('home');
+}
+
+/* ---- ຟື້ນຄືນ login ຈາກ localStorage — ຄົງໄວ້ຈົນກວ່າຈະກົດ "ອອກຈາກລະບົບ" ເອງ ---- */
+async function tryRestoreSession(){
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch(e){}
+  if (!saved || !saved.username) return false;
+  currentUser = saved;
+  document.getElementById('loginScreen').classList.add('hide');
+  document.getElementById('app').style.display = 'flex';
+  await init();
+  return true;
 }
 document.getElementById('logoutBtn').addEventListener('click', doLogout);
 document.getElementById('adminNavBtn').addEventListener('click', ()=>goto('admin'));
@@ -947,10 +970,29 @@ function renderHome(summary){
   const netEl = document.getElementById('stat-net');
   netEl.textContent = money(summary.net);
 
+  renderLatestRoundCard();
+
   const list = document.getElementById('recentList');
   const recent = (Array.isArray(BETS) ? BETS : []).slice(0, 5);
   list.innerHTML = recent.length ? recent.map(betCardHtml).join('') : emptyHtml('ຍັງບໍ່ມີລາຍການ', 'ກົດປຸ່ມ ➕ ເພື່ອບັນທຶກລາຍການແທງທຳອິດ');
   attachBetCardEvents(list);
+}
+
+function renderLatestRoundCard(){
+  const box = document.getElementById('latestRoundCard');
+  if (!box) return;
+  const rounds = Array.isArray(ROUNDS) ? ROUNDS : [];
+  const latest = rounds[0];
+  if (!latest) { box.innerHTML = emptyHtml('ຍັງບໍ່ມີຜົນງວດ', 'ຖ້າເປັນ admin, ໄປອອກຜົນງວດທີ່ ຫຼັງບ້ານ > ຜົນງວດ'); return; }
+  const animals = [latest.Animal1, latest.Animal2, latest.Animal3].filter(Boolean);
+  box.innerHTML = `
+    <div class="round-card" style="cursor:default;">
+      <div class="top">
+        <span class="round-id">ງວດທີ ${latest.RoundID}</span>
+        <span class="datetime">${latest.DateTime}</span>
+      </div>
+      <div class="animals-row">${animals.map(a=>`<div class="animal-chip" style="background:${animalGradient(a)}" title="${animalName(a)}">${animalIcon(a)}</div>`).join('')}</div>
+    </div>`;
 }
 
 function emptyHtml(title, sub){
@@ -1142,31 +1184,57 @@ document.getElementById('menuBtn').addEventListener('click', ()=>goto('profile')
    data-id is guaranteed non-empty so selections can never be saved
    as blank values.
 ================================================================= */
+/* ---- BET picker: ເລືອກໄດ້ຫຼາຍໂຕ ບໍ່ຊ້ຳ (ຄືເກົ່າ) ---- */
 function renderAnimalPickers(){
-  ['bet-animal-picker','rd-animal-picker'].forEach(id=>{
-    const el = document.getElementById(id);
-    el.innerHTML = ANIMALS.map((a,i)=>{
-      const safeId = (a.Id != null && String(a.Id).trim() !== '') ? String(a.Id).trim() : ('idx_'+i);
-      const grad = ICON_GRADIENTS[i % ICON_GRADIENTS.length];
-      return `<div class="animal-pick" data-id="${safeId}" style="background:${grad}" title="${a.Name||''}">${a.Icon||'❔'}<span class="pick-name">${a.Name||''}</span></div>`;
-    }).join('');
-    el.querySelectorAll('.animal-pick').forEach(p=>{
-      p.addEventListener('click', ()=>{
-        if (id === 'rd-animal-picker') {
-          // exactly 3 selectable for round result
-          const selected = el.querySelectorAll('.selected');
-          if (!p.classList.contains('selected') && selected.length >= 3) return;
-        }
-        p.classList.toggle('selected');
-      });
-    });
+  const el = document.getElementById('bet-animal-picker');
+  el.innerHTML = ANIMALS.map((a,i)=>{
+    const safeId = (a.Id != null && String(a.Id).trim() !== '') ? String(a.Id).trim() : ('idx_'+i);
+    const grad = ICON_GRADIENTS[i % ICON_GRADIENTS.length];
+    return `<div class="animal-pick" data-id="${safeId}" style="background:${grad}" title="${a.Name||''}">${a.Icon||'❔'}<span class="pick-name">${a.Name||''}</span></div>`;
+  }).join('');
+  el.querySelectorAll('.animal-pick').forEach(p=>{
+    p.addEventListener('click', ()=> p.classList.toggle('selected'));
   });
+  renderRoundAnimalPicker();
 }
 function getSelectedAnimals(pickerId){
   const el = document.getElementById(pickerId);
   return [...el.querySelectorAll('.selected')]
     .map(p => (p.getAttribute('data-id') || '').trim())
     .filter(Boolean);
+}
+
+/* ---- ROUND RESULT picker: ແຕ່ລະໂຕມີຕົວນັບ 0-3, ຊ້ຳກັນໄດ້, ລວມ = 3 ---- */
+let rdAnimalCounts = {};
+function renderRoundAnimalPicker(){
+  const el = document.getElementById('rd-animal-picker');
+  el.innerHTML = ANIMALS.map((a,i)=>{
+    const safeId = (a.Id != null && String(a.Id).trim() !== '') ? String(a.Id).trim() : ('idx_'+i);
+    const grad = ICON_GRADIENTS[i % ICON_GRADIENTS.length];
+    const count = rdAnimalCounts[safeId] || 0;
+    return `<div class="animal-pick${count>0?' selected has-count':''}" data-id="${safeId}" style="background:${grad}" title="${a.Name||''}">${a.Icon||'❔'}<span class="pick-count">${count}</span><span class="pick-name">${a.Name||''}</span></div>`;
+  }).join('');
+  el.querySelectorAll('.animal-pick').forEach(p=>{
+    p.addEventListener('click', ()=>{
+      const id = p.dataset.id;
+      const total = Object.values(rdAnimalCounts).reduce((s,n)=>s+n,0);
+      const cur = rdAnimalCounts[id] || 0;
+      const remaining = 3 - (total - cur);
+      rdAnimalCounts[id] = (cur < remaining) ? cur + 1 : 0;
+      renderRoundAnimalPicker();
+    });
+  });
+}
+function getRoundSelectedAnimals(){
+  const out = [];
+  Object.keys(rdAnimalCounts).forEach(id=>{
+    for (let i=0; i<(rdAnimalCounts[id]||0); i++) out.push(id);
+  });
+  return out;
+}
+function resetRoundAnimalPicker(){
+  rdAnimalCounts = {};
+  renderRoundAnimalPicker();
 }
 
 /* =================================================================
@@ -1277,18 +1345,18 @@ function updatePillFade(){
   setTimeout(updatePillFade, 0);
 })();
 
-document.querySelectorAll('.pill-tabs .pill[data-atab]').forEach(p=>{
-  p.addEventListener('click', ()=>{
-    document.querySelectorAll('.pill-tabs .pill[data-atab]').forEach(x=>x.classList.remove('active'));
-    p.classList.add('active');
-    p.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
-    ['brand','theme','animals','rounds','users'].forEach(t=>{
-      document.getElementById('atab-'+t).style.display = (t===p.dataset.atab) ? 'block' : 'none';
-    });
-    document.getElementById('atab-brand-save-wrap').style.display = (p.dataset.atab==='users') ? 'none' : 'block';
-    if (p.dataset.atab === 'users') loadUsersList();
-    updatePillFade();
+document.getElementById('adminPillTabs').addEventListener('click', (e)=>{
+  const p = e.target.closest('.pill[data-atab]');
+  if (!p) return;
+  document.querySelectorAll('#adminPillTabs .pill[data-atab]').forEach(x=>x.classList.remove('active'));
+  p.classList.add('active');
+  p.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+  ['brand','theme','animals','rounds','users'].forEach(t=>{
+    document.getElementById('atab-'+t).style.display = (t===p.dataset.atab) ? 'block' : 'none';
   });
+  document.getElementById('atab-brand-save-wrap').style.display = (p.dataset.atab==='users') ? 'none' : 'block';
+  if (p.dataset.atab === 'users') loadUsersList();
+  updatePillFade();
 });
 
 /* ---- Logo upload ---- */
@@ -1371,45 +1439,49 @@ function renderRoundsList(){
         <span class="del-round" data-round="${r.RoundID}">🗑️ ລຶບງວດນີ້</span>
       </div>
     </div>`).join('') : emptyHtml('ຍັງບໍ່ມີງວດ', 'ບັນທຶກຜົນງວດທຳອິດຂ້າງເທິງ');
+}
 
-  el.querySelectorAll('.round-card').forEach(card=>{
-    card.addEventListener('click', (e)=>{
-      if (e.target.classList.contains('del-round')) return;
-      const roundId = card.dataset.round;
-      const round = rounds.find(r => String(r.RoundID) === String(roundId));
-      if (round) openRoundEdit(round);
-    });
-  });
-  el.querySelectorAll('.del-round').forEach(btn=>{
-    btn.addEventListener('click', async (e)=>{
+/* ---- ຕິດຕັ້ງ listener ຄັ້ງດຽວແບບ delegation — ບໍ່ຫຼົງເມື່ອ render ໃໝ່ ---- */
+(function initRoundsListDelegation(){
+  const el = document.getElementById('roundsList');
+  if (!el) return;
+  el.addEventListener('click', async (e)=>{
+    const delBtn = e.target.closest('.del-round');
+    if (delBtn) {
       e.stopPropagation();
-      const roundId = e.target.dataset.round;
+      const roundId = delBtn.dataset.round;
       try {
         await callServer('deleteRound', roundId);
         ROUNDS = await callServer('getRounds');
         renderRoundsList();
         showToast('ລຶບງວດແລ້ວ 🗑️');
       } catch (err) { showToast('ລຶບລົ້ມເຫຼວ: ' + err.message); }
-    });
+      return;
+    }
+    const card = e.target.closest('.round-card');
+    if (card) {
+      const roundId = card.dataset.round;
+      const round = (Array.isArray(ROUNDS)?ROUNDS:[]).find(r => String(r.RoundID) === String(roundId));
+      if (round) openRoundEdit(round);
+    }
   });
-}
+})();
 
 function openRoundEdit(round){
   document.getElementById('rd-id').value = round.RoundID;
   document.getElementById('rd-datetime').value = displayToIso(round.DateTime);
-  document.querySelectorAll('#rd-animal-picker .selected').forEach(x=>x.classList.remove('selected'));
-  const picker = document.getElementById('rd-animal-picker');
+  rdAnimalCounts = {};
   [round.Animal1, round.Animal2, round.Animal3].filter(Boolean).forEach(a=>{
-    const el = picker.querySelector(`[data-id="${CSS.escape(a)}"]`);
-    if (el) el.classList.add('selected');
+    rdAnimalCounts[a] = (rdAnimalCounts[a] || 0) + 1;
   });
+  renderRoundAnimalPicker();
   showToast('ກຳລັງແກ້ໄຂງວດທີ ' + round.RoundID + ' — ແກ້ແລ້ວກົດ "ບັນທຶກຜົນງວດ" ໄດ້ເລີຍ');
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
 document.getElementById('saveRoundBtn').addEventListener('click', async ()=>{
-  const selected = getSelectedAnimals('rd-animal-picker');
-  if (selected.length !== 3) { showToast('ກະລຸນາເລືອກ 3 ໂຕ'); return; }
+  const selected = getRoundSelectedAnimals();
+  if (selected.length !== 3) { showToast('ກະລຸນາເລືອກໃຫ້ຄົບ 3 ໂຕ (ລວມ)'); return; }
   const roundId = document.getElementById('rd-id').value.trim();
   if (!roundId) { showToast('ກະລຸນາໃສ່ເລກງວດ'); return; }
   const payload = {
@@ -1425,7 +1497,7 @@ document.getElementById('saveRoundBtn').addEventListener('click', async ()=>{
     renderRoundsList();
     document.getElementById('rd-id').value = '';
     document.getElementById('rd-datetime').value = '';
-    document.querySelectorAll('#rd-animal-picker .selected').forEach(x=>x.classList.remove('selected'));
+    resetRoundAnimalPicker();
     const settled = res && res.settled;
     const settledMsg = settled ? ` (ຕັດງວດ: ຖືກ ${settled.winCount||0} ‧ ບໍ່ຖືກ ${settled.loseCount||0})` : '';
     showToast('ບັນທຶກຜົນງວດແລ້ວ ✅' + settledMsg);
@@ -1498,10 +1570,18 @@ function renderUsersList(){
         <span class="edit-user" data-id="${u.id}">✏️</span>
       </div>
     </div>`).join('') : emptyHtml('ຍັງບໍ່ມີຜູ້ໃຊ້', 'ກົດ "ເພີ່ມຜູ້ໃຊ້ໃໝ່" ຂ້າງລຸ່ມ');
-  el.querySelectorAll('.edit-user').forEach(btn=>{
-    btn.addEventListener('click', ()=>openUserModal(Number(btn.dataset.id)));
-  });
 }
+
+/* ---- delegation ສຳລັບ usersList ---- */
+(function initUsersListDelegation(){
+  const el = document.getElementById('usersList');
+  if (!el) return;
+  el.addEventListener('click', (e)=>{
+    const row = e.target.closest('.user-row');
+    if (!row) return;
+    openUserModal(Number(row.dataset.id));
+  });
+})();
 document.getElementById('addUserBtn').addEventListener('click', ()=>openUserModal(null));
 
 function setSelectedRole(role){
