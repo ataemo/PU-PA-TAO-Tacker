@@ -149,7 +149,8 @@
     display:flex; align-items:center; justify-content:space-around; padding:8px 4px calc(10px + env(safe-area-inset-bottom));
     border-radius:26px 26px 0 0; box-shadow:0 -8px 24px rgba(45,43,69,.08); z-index:39;
   }
-  .bottom-nav .item{display:flex; flex-direction:column; align-items:center; gap:4px; color:var(--text-dim); font-size:10px; font-weight:600; cursor:pointer; flex:1; padding:6px 0;}
+  .bottom-nav .item{display:flex; flex-direction:column; align-items:center; gap:5px; color:var(--text-dim); font-size:25px; font-weight:600; cursor:pointer; flex:1; padding:8px 0;}
+  .bottom-nav .item span{font-size:10.5px;}
   .bottom-nav .item span{font-size:9.5px;}
   .bottom-nav .item.active{color:var(--primary);}
   .nav-fab{
@@ -686,9 +687,11 @@ async function doLogin(){
     if (res && res.error) { showLoginError(res.error); return; }
     if (res && res.ok) {
       currentUser = res.user;
+      sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
       hideLoginError();
       document.getElementById('loginScreen').classList.add('hide');
       document.getElementById('app').style.display = 'flex';
+      showToast('ກຳລັງໂຫຼດຂໍ້ມູນ... ⏳');
       await init();
     }
   } catch (err) {
@@ -700,6 +703,7 @@ async function doLogin(){
 
 function doLogout(){
   currentUser = null;
+  sessionStorage.removeItem('currentUser');
   BETS = []; ROUNDS = [];
   document.getElementById('app').style.display = 'none';
   document.getElementById('loginScreen').classList.remove('hide');
@@ -1191,6 +1195,7 @@ document.getElementById('saveBetBtn').addEventListener('click', async ()=>{
 
 document.getElementById('deleteBetBtn').addEventListener('click', async ()=>{
   if (!editingBetId) return;
+  if (!confirm('ຢືນຢັນລຶບລາຍການນີ້? ການລຶບຈະບໍ່ສາມາດກູ້ຄືນໄດ້')) return;
   try {
     await callServer('deleteBet', editingBetId);
     showToast('ລຶບແລ້ວ 🗑️');
@@ -1299,6 +1304,7 @@ function renderRoundsList(){
   el.querySelectorAll('.del-round').forEach(btn=>{
     btn.addEventListener('click', async (e)=>{
       const roundId = e.target.dataset.round;
+      if (!confirm('ຢືນຢັນລຶບງວດທີ ' + roundId + '? ຜົນການຕັດງວດ (ຖືກ/ບໍ່ຖືກ) ຈະບໍ່ຖືກຄືນຄ່າ')) return;
       try {
         await callServer('deleteRound', roundId);
         ROUNDS = await callServer('getRounds');
@@ -1451,6 +1457,7 @@ document.getElementById('saveUserBtn').addEventListener('click', async ()=>{
 
 document.getElementById('deleteUserBtn').addEventListener('click', async ()=>{
   if (!editingUserId) return;
+  if (!confirm('ຢືນຢັນລຶບຜູ້ໃຊ້ນີ້? ປະຫວັດການແທງຂອງລາວຈະຍັງຄ້າງຢູ່ ແຕ່ຈະ login ບໍ່ໄດ້ອີກ')) return;
   if (currentUser && Number(currentUser.id) === Number(editingUserId)) {
     showToast('ລຶບບັນຊີຕົນເອງບໍ່ໄດ້ ໃນຂະນະທີ່ Login ຢູ່');
     return;
@@ -1469,7 +1476,17 @@ document.getElementById('deleteUserBtn').addEventListener('click', async ()=>{
 /* =================================================================
    BOOT
 ================================================================= */
-bootstrap();
+bootstrap().then(async ()=>{
+  const saved = sessionStorage.getItem('currentUser');
+  if (saved && isApiUrlConfigured()) {
+    try {
+      currentUser = JSON.parse(saved);
+      document.getElementById('loginScreen').classList.add('hide');
+      document.getElementById('app').style.display = 'flex';
+      await init();
+    } catch(e) { sessionStorage.removeItem('currentUser'); }
+  }
+});
 </script>
 </body>
 </html>
