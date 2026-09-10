@@ -88,6 +88,16 @@
   .error-banner{background:var(--lose-soft); border:1px solid #f6c6c6; color:#a13f3f; border-radius:16px; padding:14px 16px; font-size:12.5px; line-height:1.6; margin-bottom:16px; white-space:pre-wrap; text-align:left;}
   .error-banner .retry-btn{margin-top:10px; display:inline-block; background:var(--lose); color:#fff; font-weight:700; padding:8px 16px; border-radius:10px; cursor:pointer; font-size:12.5px;}
   .live-badge{display:inline-flex; align-items:center; gap:6px; font-size:11px; color:var(--text-dim); font-weight:600;}
+
+  /* ---------- Skeleton loading (ແທນ 0/- ຕອນລໍຖ້າ getAll()) ---------- */
+  .skel{display:inline-block; height:0.9em; width:64px; border-radius:6px; vertical-align:middle;
+    background:linear-gradient(90deg, rgba(255,255,255,.35) 25%, rgba(255,255,255,.6) 50%, rgba(255,255,255,.35) 75%);
+    background-size:200% 100%; animation:skel-shine 1.3s infinite;}
+  .skel.dark{background:linear-gradient(90deg, #ECEAF6 25%, #F6F5FC 50%, #ECEAF6 75%); background-size:200% 100%;}
+  .skel.wide{width:110px;}
+  .skel.small{width:36px;}
+  @keyframes skel-shine{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+
   .live-badge .dot{width:7px; height:7px; border-radius:50%; background:var(--win);}
   .live-badge .dot.syncing{background:var(--accent); animation:pulse 1s infinite;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
@@ -117,8 +127,9 @@
     border:1px solid var(--border); box-shadow:var(--shadow);
     display:flex; align-items:center; gap:12px; cursor:pointer;
   }
-  .tx-icon{width:46px; height:46px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:21px; flex-shrink:0; color:#fff; box-shadow:0 6px 14px rgba(0,0,0,.1);}
-  .tx-icon img{width:100%; height:100%; object-fit:cover; border-radius:14px;}
+  .tx-icon{display:flex; align-items:center; gap:4px; flex-shrink:0;}
+  .tx-icon .tx-icon-item{width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; background:var(--card-2); overflow:hidden;}
+  .tx-icon .tx-icon-item img{width:100%; height:100%; object-fit:contain;}
   .tx-mid{flex:1; min-width:0;}
   .tx-title{font-weight:700; font-size:14.5px; color:var(--text);}
   .tx-sub{font-size:11.5px; color:var(--text-dim); margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
@@ -139,12 +150,12 @@
   .round-card .top{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
   .round-card .round-id{font-size:12px; color:var(--text-dim); font-weight:700;}
   .round-card .datetime{font-size:12px; color:var(--text-dim);}
-  .animals-row{display:flex; gap:8px; margin-bottom:6px; flex-wrap:wrap;}
+  .animals-row{display:flex; gap:12px; margin-bottom:6px; flex-wrap:wrap; align-items:flex-end;}
   .animal-chip{
-    width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:17px;
-    color:#fff; box-shadow:0 4px 10px rgba(0,0,0,.1);
+    width:70px; height:70px; border-radius:0; display:flex; align-items:center; justify-content:center; font-size:34px;
+    color:var(--text); background:transparent; box-shadow:none;
   }
-  .animal-chip img{width:100%; height:100%; object-fit:cover; border-radius:50%;}
+  .animal-chip img{width:100%; height:100%; object-fit:contain; border-radius:0;}
   .round-card .del-round{font-size:12px; color:var(--lose); cursor:pointer; font-weight:600;}
 
   /* ---------- FAB (desktop only; mobile uses nav-fab) ---------- */
@@ -332,11 +343,11 @@
     <div class="sidebar-user">
       <img id="sb-user-avatar" alt="avatar">
       <div>
-        <div class="su-name" id="sb-user-name">-</div>
-        <div class="su-role" id="sb-user-role">-</div>
+        <div class="su-name" id="sb-user-name"><span class="skel dark"></span></div>
+        <div class="su-role" id="sb-user-role"><span class="skel dark small"></span></div>
       </div>
     </div>
-    <div class="live-badge" style="padding:10px 4px 0;"><span class="dot" id="liveDot"></span><span id="liveLabel">-</span></div>
+    <div class="live-badge" style="padding:10px 4px 0;"><span class="dot" id="liveDot"></span><span id="liveLabel"><span class="skel dark small"></span></span></div>
   </div>
 
   <div id="main">
@@ -358,14 +369,14 @@
       <div class="hero-card">
         <div class="hero-top">
           <span id="greeting">ສະບາຍດີ 👋</span>
-          <span class="hero-pill" id="liveLabelHero">-</span>
+          <span class="hero-pill" id="liveLabelHero"><span class="skel small" style="height:0.8em;"></span></span>
         </div>
-        <div class="hero-num" id="stat-net">0 ກີບ</div>
+        <div class="hero-num" id="stat-net"><span class="skel wide"></span></div>
         <div class="hero-sub" id="lbl-net">ກຳໄລ/ຂາດທຶນ</div>
         <div class="hero-chips">
-          <div class="hero-chip"><div class="hc-label" id="lbl-income">ລາຍຮັບ</div><div class="hc-val" id="stat-income">0</div></div>
-          <div class="hero-chip"><div class="hc-label" id="lbl-expense">ລາຍຈ່າຍ</div><div class="hc-val" id="stat-expense">0</div></div>
-          <div class="hero-chip"><div class="hc-label">ຈຳນວນຄັ້ງ</div><div class="hc-val" id="stat-count">0</div></div>
+          <div class="hero-chip"><div class="hc-label" id="lbl-income">ລາຍຮັບ</div><div class="hc-val" id="stat-income"><span class="skel"></span></div></div>
+          <div class="hero-chip"><div class="hc-label" id="lbl-expense">ລາຍຈ່າຍ</div><div class="hc-val" id="stat-expense"><span class="skel"></span></div></div>
+          <div class="hero-chip"><div class="hc-label">ຈຳນວນຄັ້ງ</div><div class="hc-val" id="stat-count"><span class="skel small"></span></div></div>
         </div>
       </div>
 
@@ -755,6 +766,14 @@ function emptySummary(){ return {income:0, expense:0, net:0, winCount:0, loseCou
    then wait for the user to log in before pulling any bet data.
 ================================================================= */
 async function bootstrap(){
+  // ສະແດງໂລໂກ້ + ຊື່ແອັບແບບເລີ່ມຕົ້ນທັນທີ ບໍ່ຕ້ອງລໍຖ້າ Backend
+  const loginLogo = document.getElementById('login-logo-img');
+  loginLogo.onerror = function(){ this.onerror=null; this.src = DEFAULT_LOGO; };
+  loginLogo.src = DEFAULT_LOGO;
+  document.getElementById('login-title').textContent = 'ລະບົບຕິດຕາມການແທງ';
+  document.getElementById('login-subtitle').textContent = '';
+
+  // ຄ່ອຍໄປອັບເດດເປັນໂລໂກ້/ຊື່ຈິງເມື່ອຂໍ້ມູນມາເຖິງ ໂດຍບໍ່ບັງຄັບໃຫ້ຜູ້ໃຊ້ລໍຖ້າ
   try {
     const cfg = await callServer('getConfig');
     CONFIG = cfg && !cfg.error ? cfg : defaultConfigJs();
@@ -762,10 +781,7 @@ async function bootstrap(){
     CONFIG = defaultConfigJs();
   }
   applyTheme();
-  const src = currentLogoSrc();
-  const loginLogo = document.getElementById('login-logo-img');
-  loginLogo.onerror = function(){ this.onerror=null; this.src = DEFAULT_LOGO; };
-  loginLogo.src = src;
+  loginLogo.src = currentLogoSrc();
   document.getElementById('login-title').textContent = CONFIG.appTitle || 'ລະບົບຕິດຕາມການແທງ';
   document.getElementById('login-subtitle').textContent = CONFIG.appSubtitle || '';
 
@@ -855,6 +871,12 @@ function setSyncing(on){
 }
 
 async function init(){
+  // ສະແດງໂລໂກ້ + ຮູບ/ຊື່ຜູ້ໃຊ້ທັນທີຈາກຂໍ້ມູນທີ່ມີຢູ່ແລ້ວ ບໍ່ຕ້ອງລໍຖ້າ getAll()
+  safe('brand', () => renderBrand());
+  safe('user-chrome', () => renderUserChrome());
+  document.getElementById('sb-admin-link').style.display = currentUser.role === 'admin' ? 'flex' : 'none';
+  document.getElementById('adminNavBtn').style.display = currentUser.role === 'admin' ? 'block' : 'none';
+
   setSyncing(true);
   let data = null;
   const errors = [];
@@ -1044,9 +1066,9 @@ function renderHome(summary){
 
 function rankedAnimalChipsHtml(animals){
   return animals.map((a,idx)=>`
-    <div class="animal-chip" style="background:${animalGradient(a)}; position:relative;" title="${animalName(a)} - ອັນດັບ ${idx+1}">
+    <div class="animal-chip" style="position:relative;" title="${animalName(a)} - ອັນດັບ ${idx+1}">
       ${animalIconHtml(a)}
-      <span style="position:absolute;bottom:-6px;right:-4px;background:var(--text);color:#fff;font-size:9px;font-weight:800;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">${idx+1}</span>
+      <span style="position:absolute;bottom:-4px;right:-6px;background:var(--text);color:#fff;font-size:12px;font-weight:800;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">${idx+1}</span>
     </div>`).join('');
 }
 
@@ -1076,14 +1098,14 @@ function betCardHtml(b){
   const status = String(b.Status||'PENDING').toUpperCase();
   const amt = status === 'WIN' ? b.Payout : b.Stake;
   const sign = status === 'WIN' ? '+' : (status === 'LOSE' ? '−' : '');
-  const firstAnimal = animals[0];
-  const iconGrad = firstAnimal ? animalGradient(firstAnimal) : ICON_GRADIENTS[0];
-  const iconHtml = firstAnimal ? animalIconHtml(firstAnimal) : '❔';
+  const iconsHtml = animals.length
+    ? animals.map(a => `<div class="tx-icon-item">${animalIconHtml(a)}</div>`).join('')
+    : `<div class="tx-icon-item">❔</div>`;
   const animalNames = animals.map(a=>animalName(a)).join(', ');
   const ownerTag = (currentUser && currentUser.role === 'admin' && b.Username) ? (' · 👤 '+b.Username) : '';
   return `
   <div class="tx-row" data-id="${b.ID}">
-    <div class="tx-icon" style="background:${iconGrad}">${iconHtml}</div>
+    <div class="tx-icon">${iconsHtml}</div>
     <div class="tx-mid">
       <div class="tx-title">ງວດທີ ${b.RoundID || '-'}</div>
       <div class="tx-sub">${b.RoundDateTime||''} ${animalNames ? '· '+animalNames : ''} ${b.Agent ? '· '+b.Agent : ''}${ownerTag}</div>
