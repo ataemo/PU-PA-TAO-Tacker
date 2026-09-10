@@ -497,13 +497,18 @@
         <div class="field"><label>ປ້າຍລາຍຈ່າຍ</label><input type="text" id="cfg-labelExpense"></div>
         <div class="field"><label>ປ້າຍກຳໄລ/ຂາດທຶນ</label><input type="text" id="cfg-labelNet"></div>
         <div class="field">
-          <label>ອັດຕາຈ່າຍ (ເງິນແທງ × ຕົວຄູນ ຕາມຈຳນວນໂຕທີ່ຖືກ)</label>
+          <label>ອັດຕາຈ່າຍ — ແທງໂດດ (ຈຳນວນຄັ້ງທີ່ໂຕນັ້ນອອກໃນຜົນງວດ)</label>
           <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
-            <div><label style="font-size:10.5px; color:var(--text-dim); font-weight:600;">ຖືກ 1 ໂຕ</label><input type="number" id="cfg-multiplier1" placeholder="4"></div>
-            <div><label style="font-size:10.5px; color:var(--text-dim); font-weight:600;">ຖືກ 2 ໂຕ</label><input type="number" id="cfg-multiplier2" placeholder="20"></div>
-            <div><label style="font-size:10.5px; color:var(--text-dim); font-weight:600;">ຖືກ 3 ໂຕ</label><input type="number" id="cfg-multiplier3" placeholder="100"></div>
+            <div><label style="font-size:10.5px; color:var(--text-dim); font-weight:600;">ອອກ 1 ຄັ້ງ</label><input type="number" id="cfg-multiplier1" placeholder="1"></div>
+            <div><label style="font-size:10.5px; color:var(--text-dim); font-weight:600;">ອອກ 2 ຄັ້ງ</label><input type="number" id="cfg-multiplier2" placeholder="3"></div>
+            <div><label style="font-size:10.5px; color:var(--text-dim); font-weight:600;">ອອກ 3 ຄັ້ງ</label><input type="number" id="cfg-multiplier3" placeholder="4"></div>
           </div>
-          <div class="hint">ຕົວຢ່າງ: ແທງ 40,000 ກີບ ຖືກ 1 ໂຕ x4 = ໄດ້ 160,000 ‧ ຖືກ 2 ໂຕ x20 = ໄດ້ 800,000 ‧ ຖືກ 3 ໂຕ x100 = ໄດ້ 4,000,000 ກີບ</div>
+          <div class="hint">ຕົວຢ່າງ: ແທງ "ปลา" ໂດດ 200,000 ກີບ — ปลา ອອກ 1 ຄັ້ງ ໄດ້ 200,000 (x1) ‧ ອອກ 2 ຄັ້ງ ໄດ້ 600,000 (x3) ‧ ອອກ 3 ຄັ້ງ ໄດ້ 800,000 (x4)</div>
+        </div>
+        <div class="field">
+          <label>ອັດຕາຈ່າຍ — ແທງຄູ່/ຫຼາຍໂຕຕ່າງກັນ (ຕ້ອງອອກຄົບທຸກໂຕທີ່ເລືອກ ບໍ່ນັບຈຳນວນຄັ້ງ)</label>
+          <input type="number" id="cfg-multiplierCombo" placeholder="1">
+          <div class="hint">ຕົວຢ່າງ: ແທງຄູ່ "ปลา+เสือ" 20,000 ກີບ — ຖ້າຜົນງວດມີທັງ ปลา ແລະ เสือ ຢ່າງໜ້ອຍໂຕລະ 1 ຄັ້ງ ໄດ້ 20,000 (x1)</div>
         </div>
       </div>
 
@@ -790,7 +795,7 @@ function defaultConfigJs(){
   return { appTitle:'ປູປາເຕົ້າມະທາໂຊກ (Demo)', appSubtitle:'ຍັງບໍ່ໄດ້ເຊື່ອມ Backend', logoIcon:'🎯', logoUrl:'',
     themePrimary:'#8B7CF6', themeAccent:'#FFA94D', themeWin:'#2FB88B', themeLose:'#F26D6D',
     homeGreeting:'ສະບາຍດີ, ນີ້ແມ່ນສະຫຼຸບຂອງເຈົ້າມື້ນີ້', labelIncome:'ລາຍຮັບ (ຖືກ)', labelExpense:'ລາຍຈ່າຍ (ບໍ່ຖືກ)',
-    labelNet:'ກຳໄລ / ຂາດທຶນ', multiplier1:4, multiplier2:20, multiplier3:100 };
+    labelNet:'ກຳໄລ / ຂາດທຶນ', multiplier1:1, multiplier2:3, multiplier3:4, multiplierCombo:1 };
 }
 function emptySummary(){ return {income:0, expense:0, net:0, winCount:0, loseCount:0, pendingCount:0, byRound:[], byDay:[], byAnimal:[]}; }
 
@@ -1670,9 +1675,10 @@ function renderAdminForms(){
   document.getElementById('cfg-labelIncome').value = CONFIG.labelIncome||'';
   document.getElementById('cfg-labelExpense').value = CONFIG.labelExpense||'';
   document.getElementById('cfg-labelNet').value = CONFIG.labelNet||'';
-  document.getElementById('cfg-multiplier1').value = CONFIG.multiplier1||4;
-  document.getElementById('cfg-multiplier2').value = CONFIG.multiplier2||20;
-  document.getElementById('cfg-multiplier3').value = CONFIG.multiplier3||100;
+  document.getElementById('cfg-multiplier1').value = CONFIG.multiplier1||1;
+  document.getElementById('cfg-multiplier2').value = CONFIG.multiplier2||3;
+  document.getElementById('cfg-multiplier3').value = CONFIG.multiplier3||4;
+  document.getElementById('cfg-multiplierCombo').value = CONFIG.multiplierCombo||1;
   document.getElementById('cfg-themePrimary').value = CONFIG.themePrimary||'#8B7CF6';
   document.getElementById('cfg-themeAccent').value = CONFIG.themeAccent||'#FFA94D';
   document.getElementById('cfg-themeWin').value = CONFIG.themeWin||'#2FB88B';
@@ -1875,6 +1881,7 @@ document.getElementById('saveConfigBtn').addEventListener('click', async ()=>{
     multiplier1: Number(document.getElementById('cfg-multiplier1').value) || 0,
     multiplier2: Number(document.getElementById('cfg-multiplier2').value) || 0,
     multiplier3: Number(document.getElementById('cfg-multiplier3').value) || 0,
+    multiplierCombo: Number(document.getElementById('cfg-multiplierCombo').value) || 0,
     themePrimary: document.getElementById('cfg-themePrimary').value,
     themeAccent: document.getElementById('cfg-themeAccent').value,
     themeWin: document.getElementById('cfg-themeWin').value,
