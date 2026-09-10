@@ -510,6 +510,11 @@
           <input type="number" id="cfg-multiplierCombo" placeholder="1">
           <div class="hint">ຕົວຢ່າງ: ແທງຄູ່ "ปลา+เสือ" 20,000 ກີບ — ຖ້າຜົນງວດມີທັງ ปลา ແລະ เสือ ຢ່າງໜ້ອຍໂຕລະ 1 ຄັ້ງ ໄດ້ 20,000 (x1)</div>
         </div>
+        <div class="field">
+          <label>ອັດຕາຈ່າຍສະເພາະແຕ່ລະຄູ່ (ບໍ່ຕັ້ງ = ໃຊ້ຄ່າພື້ນຖານດ້ານເທິງ)</label>
+          <div id="comboRatesList"></div>
+          <div class="hint">ຕົວຢ່າງ: ปู+เสือ ຕັ້ງ 6 → ຖ້າແທງ 50,000 ແລ້ວທັງ 2 ໂຕນີ້ອອກໃນຜົນງວດ ຈະໄດ້ 300,000</div>
+        </div>
       </div>
 
       <div id="atab-theme" style="display:none;">
@@ -1692,6 +1697,7 @@ function renderAdminForms(){
   document.getElementById('cfg-themeLose').value = CONFIG.themeLose||'#F26D6D';
   document.getElementById('logoPreview').src = currentLogoSrc();
   renderAnimalConfigList();
+  renderComboRatesList();
   renderRoundsList();
   loadUsersList();
 }
@@ -1746,6 +1752,29 @@ function renderAnimalConfigList(){
     });
   });
 }
+
+function renderComboRatesList(){
+  const el = document.getElementById('comboRatesList');
+  if (!el) return;
+  const rates = CONFIG.comboRates || {};
+  const pairs = [];
+  for (let i=0;i<ANIMALS.length;i++){
+    for (let j=i+1;j<ANIMALS.length;j++){
+      pairs.push([ANIMALS[i], ANIMALS[j]]);
+    }
+  }
+  el.innerHTML = pairs.map(([a,b])=>{
+    const key = [String(a.Id),String(b.Id)].sort().join('|');
+    const val = (rates[key] !== undefined && rates[key] !== '') ? rates[key] : '';
+    return `<div class="config-list-item" data-key="${key}">
+      <div class="a-icon-preview" style="background:${animalGradient(a.Id)}">${iconInnerHtml(a.Icon)}</div>
+      <div class="a-icon-preview" style="background:${animalGradient(b.Id)}">${iconInnerHtml(b.Icon)}</div>
+      <span style="flex:1; font-size:12.5px; font-weight:700;">${a.Name} + ${b.Name}</span>
+      <input type="number" class="combo-rate-input" data-key="${key}" placeholder="ພື້ນຖານ" value="${val}" style="width:90px;">
+    </div>`;
+  }).join('');
+}
+
 document.getElementById('addAnimalBtn').addEventListener('click', ()=>{
   ANIMALS.push({Id:'animal_'+Date.now(), Name:'ສັດໃໝ່', Icon:'', Order: ANIMALS.length+1});
   renderAnimalConfigList();
@@ -1894,6 +1923,12 @@ document.getElementById('saveConfigBtn').addEventListener('click', async ()=>{
     themeWin: document.getElementById('cfg-themeWin').value,
     themeLose: document.getElementById('cfg-themeLose').value
   };
+  const comboRates = {};
+  document.querySelectorAll('#comboRatesList .combo-rate-input').forEach(inp=>{
+    const v = inp.value.trim();
+    if (v !== '') comboRates[inp.dataset.key] = Number(v) || 0;
+  });
+  newConfig.comboRates = comboRates;
   try {
     const [cfgRes, aniRes] = await Promise.all([callServer('saveConfig', newConfig), callServer('saveAnimals', newAnimals)]);
     if ((cfgRes && cfgRes.error) || (aniRes && aniRes.error)) {
