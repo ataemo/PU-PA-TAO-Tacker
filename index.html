@@ -288,6 +288,17 @@
     justify-content:center; z-index:200; padding:20px;
   }
   #loginScreen.hide{display:none;}
+
+  /* ---------- Splash screen — ສະແດງໄລຍະສັ້ນໆ ຕອນເປີດແອັບ ໃນຂະນະທີ່ກຳລັງກວດ
+     session ເກົ່າ, ເພື່ອບໍ່ໃຫ້ໜ້າ login ແວບຂຶ້ນມາໃຫ້ເຫັນສຳລັບຄົນທີ່ login ໄວ້ແລ້ວ ---------- */
+  #splashScreen{
+    position:fixed; inset:0; background:var(--hero-gradient); display:flex; align-items:center;
+    justify-content:center; z-index:300;
+  }
+  #splashScreen.hide{display:none;}
+  #splashScreen img{width:96px; height:96px; border-radius:24px; object-fit:cover; animation:splash-pulse 1.3s ease-in-out infinite;}
+  @keyframes splash-pulse{0%,100%{transform:scale(1); opacity:1;} 50%{transform:scale(1.08); opacity:.85;}}
+
   .login-card{
     background:var(--card); width:100%; max-width:380px; border-radius:28px; padding:34px 26px;
     box-shadow:0 30px 60px rgba(45,43,69,.35); text-align:center;
@@ -324,8 +335,13 @@
 </head>
 <body>
 
+<!-- ============================ SPLASH SCREEN ============================ -->
+<div id="splashScreen">
+  <img id="splash-logo-img" alt="logo">
+</div>
+
 <!-- ============================ LOGIN SCREEN ============================ -->
-<div id="loginScreen">
+<div id="loginScreen" class="hide">
   <div class="login-card">
     <img class="logo-img" id="login-logo-img" alt="logo">
     <h2 id="login-title">ກຳລັງໂຫຼດ...</h2>
@@ -783,14 +799,38 @@ function emptySummary(){ return {income:0, expense:0, net:0, winCount:0, loseCou
    then wait for the user to log in before pulling any bet data.
 ================================================================= */
 async function bootstrap(){
-  // ສະແດງໂລໂກ້ + ຊື່ແອັບແບບເລີ່ມຕົ້ນທັນທີ ບໍ່ຕ້ອງລໍຖ້າ Backend
+  const splash = document.getElementById('splashScreen');
+  splash.querySelector('#splash-logo-img').src = DEFAULT_LOGO;
+
+  // ✅ ກວດ session ທີ່ບັນທຶກໄວ້ກ່ອນເລີຍ (localStorage — ບໍ່ຕ້ອງລໍ network)
+  //    ເພື່ອຕັດສິນໃຈວ່າຈະຂ້າມໜ້າ login ໄປເລີຍ ຫຼື ຕ້ອງສະແດງໜ້າ login
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch(e){}
+
+  if (saved && saved.username) {
+    // ---- ມີ session ຢູ່ແລ້ວ: ຂ້າມໜ້າ login ໄປເລີຍ, ຄ້າງໜ້າ splash ໄວ້ລໍ config ----
+    currentUser = saved;
+    try {
+      const cfg = await callServer('getConfig');
+      CONFIG = cfg && !cfg.error ? cfg : defaultConfigJs();
+    } catch (e) {
+      CONFIG = defaultConfigJs();
+    }
+    applyTheme();
+    splash.querySelector('#splash-logo-img').src = currentLogoSrc();
+    splash.classList.add('hide');
+    document.getElementById('app').style.display = 'flex';
+    await init();
+    return;
+  }
+
+  // ---- ບໍ່ມີ session: ຄ່ອຍສະແດງໜ້າ login (ໂຫຼດໂລໂກ້/ຊື່ແອັບກ່ອນ) ----
   const loginLogo = document.getElementById('login-logo-img');
   loginLogo.onerror = function(){ this.onerror=null; this.src = DEFAULT_LOGO; };
   loginLogo.src = DEFAULT_LOGO;
   document.getElementById('login-title').textContent = 'ລະບົບຕິດຕາມການແທງ';
   document.getElementById('login-subtitle').textContent = '';
 
-  // ຄ່ອຍໄປອັບເດດເປັນໂລໂກ້/ຊື່ຈິງເມື່ອຂໍ້ມູນມາເຖິງ ໂດຍບໍ່ບັງຄັບໃຫ້ຜູ້ໃຊ້ລໍຖ້າ
   try {
     const cfg = await callServer('getConfig');
     CONFIG = cfg && !cfg.error ? cfg : defaultConfigJs();
@@ -802,7 +842,8 @@ async function bootstrap(){
   document.getElementById('login-title').textContent = CONFIG.appTitle || 'ລະບົບຕິດຕາມການແທງ';
   document.getElementById('login-subtitle').textContent = CONFIG.appSubtitle || '';
 
-  await tryRestoreSession();
+  splash.classList.add('hide');
+  document.getElementById('loginScreen').classList.remove('hide');
 }
 
 /* =================================================================
@@ -857,17 +898,6 @@ function doLogout(){
   goto('home');
 }
 
-/* ---- ຟື້ນຄືນ login ຈາກ localStorage — ຄົງໄວ້ຈົນກວ່າຈະກົດ "ອອກຈາກລະບົບ" ເອງ ---- */
-async function tryRestoreSession(){
-  let saved = null;
-  try { saved = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch(e){}
-  if (!saved || !saved.username) return false;
-  currentUser = saved;
-  document.getElementById('loginScreen').classList.add('hide');
-  document.getElementById('app').style.display = 'flex';
-  await init();
-  return true;
-}
 document.getElementById('logoutBtn').addEventListener('click', doLogout);
 document.getElementById('adminNavBtn').addEventListener('click', ()=>goto('admin'));
 
