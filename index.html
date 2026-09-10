@@ -4,6 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>ລະບົບຕິດຕາມ ປູປາເຕົ້າ</title>
+
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="theme-color" content="#ffffff">
+
+<!-- ສຳລັບ iOS ໃຫ້ເປີດແບບເຕັມຈໍຄືແອັບຕົວຈິງ -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ປູປາເຕົ້າ">
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;600;700;800&family=Poppins:wght@500;600;700;800&display=swap');
@@ -1874,6 +1886,13 @@ document.getElementById('deleteUserBtn').addEventListener('click', async ()=>{
    BOOT
 ================================================================= */
 bootstrap();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => console.log('SW error:', err));
+  });
+}
 </script>
 </body>
 </html>
