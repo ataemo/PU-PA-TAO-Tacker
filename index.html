@@ -394,9 +394,11 @@
         <div class="pill" data-filter="WIN">ຖືກ</div>
         <div class="pill" data-filter="LOSE">ບໍ່ຖືກ</div>
         <div class="pill" data-filter="PENDING">ລໍຖ້າ</div>
+        <div class="pill" data-filter="ROUNDS">📜 ຜົນງວດ</div>
       </div>
       <div class="field"><input type="text" id="historySearch" placeholder="🔍 ຄົ້ນຫາ ເລກງວດ / ຕົວແທນ / ໝາຍເຫດ"></div>
       <div id="historyList"></div>
+      <div id="historyRoundsList" style="display:none;"></div>
       <button class="btn secondary" id="exportCsvBtn" style="margin-top:8px;">⬇️ ສົ່ງອອກ CSV</button>
     </div>
 
@@ -962,6 +964,7 @@ async function refreshData(){
       safe('stats', () => renderStats(summary));
       safe('profile', () => renderProfile(summary));
       safe('rounds', () => renderRoundsList());
+      safe('history-rounds', () => { if (historyFilter === 'ROUNDS') renderHistoryRoundsList(); });
       hideErrorBanner();
     }
   } catch (err) {
@@ -1149,7 +1152,15 @@ document.querySelectorAll('.pill-tabs .pill[data-filter]').forEach(p=>{
     document.querySelectorAll('.pill-tabs .pill[data-filter]').forEach(x=>x.classList.remove('active'));
     p.classList.add('active');
     historyFilter = p.dataset.filter;
-    renderHistory();
+
+    const isRoundsView = historyFilter === 'ROUNDS';
+    document.getElementById('historyList').style.display = isRoundsView ? 'none' : 'block';
+    document.getElementById('historyRoundsList').style.display = isRoundsView ? 'block' : 'none';
+    document.getElementById('historySearch').parentElement.style.display = isRoundsView ? 'none' : 'block';
+    document.getElementById('exportCsvBtn').style.display = isRoundsView ? 'none' : 'block';
+
+    if (isRoundsView) renderHistoryRoundsList();
+    else renderHistory();
   });
 });
 document.getElementById('historySearch').addEventListener('input', (e)=>{
@@ -1639,6 +1650,22 @@ function renderRoundsList(){
         <span class="del-round" data-round="${r.RoundID}">🗑️ ລຶບງວດນີ້</span>
       </div>
     </div>`).join('') : emptyHtml('ຍັງບໍ່ມີງວດ', 'ບັນທຶກຜົນງວດທຳອິດຂ້າງເທິງ');
+}
+
+
+/* ---- ປະຫວັດຜົນງວດຍ້ອນຫຼັງ ໃນໜ້າ ປະຫວັດການແທງ (ເບິ່ງໄດ້ທຸກຄົນ, ບໍ່ມີປຸ່ມລຶບ) ---- */
+function renderHistoryRoundsList(){
+  const el = document.getElementById('historyRoundsList');
+  if (!el) return;
+  const rounds = Array.isArray(ROUNDS) ? ROUNDS : [];
+  el.innerHTML = rounds.length ? rounds.map(r=>`
+    <div class="round-card" style="cursor:default;">
+      <div class="top">
+        <span class="round-id">ງວດທີ ${r.RoundID}</span>
+        <span class="datetime">${r.DateTime}</span>
+      </div>
+      <div class="animals-row">${rankedAnimalChipsHtml([r.Animal1,r.Animal2,r.Animal3].filter(Boolean))}</div>
+    </div>`).join('') : emptyHtml('ຍັງບໍ່ມີຜົນງວດ', 'ຖ້າເປັນ admin, ໄປອອກຜົນງວດທີ່ ຫຼັງບ້ານ > ຜົນງວດ');
 }
 
 /* ---- ຕິດຕັ້ງ listener ຄັ້ງດຽວແບບ delegation — ບໍ່ຫຼົງເມື່ອ render ໃໝ່ ---- */
