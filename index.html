@@ -369,7 +369,6 @@
       <div class="hero-card">
         <div class="hero-top">
           <span id="greeting">ສະບາຍດີ 👋</span>
-          <span class="hero-pill" id="liveLabelHero"><span class="skel small" style="height:0.8em;"></span></span>
         </div>
         <div class="hero-num" id="stat-net"><span class="skel wide"></span></div>
         <div class="hero-sub" id="lbl-net">ກຳໄລ/ຂາດທຶນ</div>
@@ -536,10 +535,6 @@
     <div class="row2" style="margin-top:20px;">
       <div class="field"><label>ຈຳນວນເງິນແທງ (ກີບ)</label><input type="number" id="bet-stake" placeholder="10000"></div>
       <div class="field"><label>ຈຳນວນທີ່ໄດ້ (ຖ້າຖືກ)</label><input type="number" id="bet-payout" placeholder="0"></div>
-    </div>
-    <div class="field">
-      <label>ຕົວແທນ / ບັນຊີ</label>
-      <input type="text" id="bet-agent" placeholder="ຊື່ຕົວແທນ">
     </div>
     <div class="field">
       <label>ສະຖານະ</label>
@@ -927,7 +922,6 @@ async function init(){
 
   const liveTxt = IS_LIVE ? 'ເຊື່ອມຕໍ່ Backend ແລ້ວ' : 'ໂໝດ Demo (ຍັງເຊື່ອມ Backend ບໍ່ໄດ້)';
   document.getElementById('liveLabel').textContent = liveTxt;
-  document.getElementById('liveLabelHero').textContent = liveTxt;
 
   if (errors.length) showErrorBanner(errors.join('\n'));
   else hideErrorBanner();
@@ -1030,6 +1024,16 @@ function showToast(msg){
 /* ---- datetime-local <-> display string (DD/MM/YYYY HH:mm) helpers ---- */
 function pad2(n){ return String(n).padStart(2,'0'); }
 function isoLocalFromDate(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())+'T'+pad2(d.getHours())+':'+pad2(d.getMinutes()); }
+/** ສະແດງວັນທີ-ເວລາໃຫ້ຖືກຕ້ອງສະເໝີ ບໍ່ວ່າຄ່າທີ່ໄດ້ຈາກ Sheet ຈະເປັນຂໍ້ຄວາມ
+    DD/MM/YYYY HH:mm ປົກກະຕິ ຫຼື ຖືກ Sheet ປ່ຽນເປັນ ISO string (2026-...Z) ໄປແລ້ວກໍ່ຕາມ */
+function formatDisplayDateTime(v){
+  if (!v) return '';
+  const s = String(v);
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) return s;
+  const d = new Date(s);
+  if (!isNaN(d)) return pad2(d.getDate())+'/'+pad2(d.getMonth()+1)+'/'+d.getFullYear()+' '+pad2(d.getHours())+':'+pad2(d.getMinutes());
+  return s;
+}
 function isoToDisplay(iso){
   if (!iso) return '';
   const d = new Date(iso);
@@ -1086,7 +1090,7 @@ function renderLatestRoundCard(){
     <div class="round-card" style="cursor:default;">
       <div class="top">
         <span class="round-id">ງວດທີ ${latest.RoundID}</span>
-        <span class="datetime">${latest.DateTime}</span>
+        <span class="datetime">${formatDisplayDateTime(latest.DateTime)}</span>
       </div>
       <div class="animals-row">${rankedAnimalChipsHtml(animals)}</div>
     </div>`;
@@ -1111,7 +1115,7 @@ function betCardHtml(b){
     <div class="tx-icon">${iconsHtml}</div>
     <div class="tx-mid">
       <div class="tx-title">ງວດທີ ${b.RoundID || '-'}</div>
-      <div class="tx-sub">${b.RoundDateTime||''} ${animalNames ? '· '+animalNames : ''} ${b.Agent ? '· '+b.Agent : ''}${ownerTag}</div>
+      <div class="tx-sub">${formatDisplayDateTime(b.RoundDateTime)} ${animalNames ? '· '+animalNames : ''}${ownerTag}</div>
     </div>
     <div class="tx-right">
       <span class="tx-amount ${status}">${sign}${money(amt)}</span>
@@ -1382,7 +1386,6 @@ function openBetModal(id){
   document.getElementById('bet-roundDateTime').value = bet ? displayToIso(bet.RoundDateTime) : isoLocalFromDate(new Date());
   document.getElementById('bet-stake').value = bet ? bet.Stake : '';
   document.getElementById('bet-payout').value = bet ? bet.Payout : '';
-  document.getElementById('bet-agent').value = bet ? bet.Agent : '';
   document.getElementById('bet-note').value = bet ? bet.Note : '';
   currentStatus = bet ? String(bet.Status).toUpperCase() : 'PENDING';
   updateStatusPicker();
@@ -1423,7 +1426,6 @@ document.getElementById('saveBetBtn').addEventListener('click', async ()=>{
     animals,
     stake,
     payout: document.getElementById('bet-payout').value,
-    agent: document.getElementById('bet-agent').value,
     note: document.getElementById('bet-note').value,
     status: currentStatus,
     username: currentUser.username,
@@ -1643,7 +1645,7 @@ function renderRoundsList(){
     <div class="round-card" data-round="${r.RoundID}">
       <div class="top">
         <span class="round-id">ງວດທີ ${r.RoundID}</span>
-        <span class="datetime">${r.DateTime}</span>
+        <span class="datetime">${formatDisplayDateTime(r.DateTime)}</span>
       </div>
       <div class="animals-row">${rankedAnimalChipsHtml([r.Animal1,r.Animal2,r.Animal3].filter(Boolean))}</div>
       <div class="bet-row" style="display:flex; justify-content:flex-end; padding-top:4px;">
@@ -1662,7 +1664,7 @@ function renderHistoryRoundsList(){
     <div class="round-card" style="cursor:default;">
       <div class="top">
         <span class="round-id">ງວດທີ ${r.RoundID}</span>
-        <span class="datetime">${r.DateTime}</span>
+        <span class="datetime">${formatDisplayDateTime(r.DateTime)}</span>
       </div>
       <div class="animals-row">${rankedAnimalChipsHtml([r.Animal1,r.Animal2,r.Animal3].filter(Boolean))}</div>
     </div>`).join('') : emptyHtml('ຍັງບໍ່ມີຜົນງວດ', 'ຖ້າເປັນ admin, ໄປອອກຜົນງວດທີ່ ຫຼັງບ້ານ > ຜົນງວດ');
