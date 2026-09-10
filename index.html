@@ -162,7 +162,7 @@
   .round-card .top{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
   .round-card .round-id{font-size:12px; color:var(--text-dim); font-weight:700;}
   .round-card .datetime{font-size:12px; color:var(--text-dim);}
-  .animals-row{display:flex; gap:12px; margin-bottom:6px; flex-wrap:wrap; align-items:flex-end;}
+  .animals-row{display:flex; gap:12px; margin-bottom:6px; flex-wrap:wrap; align-items:flex-end; justify-content:center;}
   .animal-chip{
     width:70px; height:70px; border-radius:0; display:flex; align-items:center; justify-content:center; font-size:34px;
     color:var(--text); background:transparent; box-shadow:none;
@@ -480,7 +480,15 @@
         <div class="field"><label>ປ້າຍລາຍຮັບ</label><input type="text" id="cfg-labelIncome"></div>
         <div class="field"><label>ປ້າຍລາຍຈ່າຍ</label><input type="text" id="cfg-labelExpense"></div>
         <div class="field"><label>ປ້າຍກຳໄລ/ຂາດທຶນ</label><input type="text" id="cfg-labelNet"></div>
-        <div class="field"><label>ຕົວຄູນອັດຕາຈ່າຍ (ເງິນແທງ × ຈຳນວນໂຕຖືກ × ຕົວຄູນ)</label><input type="number" id="cfg-payoutMultiplier" placeholder="30"></div>
+        <div class="field">
+          <label>ອັດຕາຈ່າຍ (ເງິນແທງ × ຕົວຄູນ ຕາມຈຳນວນໂຕທີ່ຖືກ)</label>
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+            <div><label style="font-size:10.5px; color:var(--text-dim); font-weight:600;">ຖືກ 1 ໂຕ</label><input type="number" id="cfg-multiplier1" placeholder="4"></div>
+            <div><label style="font-size:10.5px; color:var(--text-dim); font-weight:600;">ຖືກ 2 ໂຕ</label><input type="number" id="cfg-multiplier2" placeholder="20"></div>
+            <div><label style="font-size:10.5px; color:var(--text-dim); font-weight:600;">ຖືກ 3 ໂຕ</label><input type="number" id="cfg-multiplier3" placeholder="100"></div>
+          </div>
+          <div class="hint">ຕົວຢ່າງ: ແທງ 40,000 ກີບ ຖືກ 1 ໂຕ x4 = ໄດ້ 160,000 ‧ ຖືກ 2 ໂຕ x20 = ໄດ້ 800,000 ‧ ຖືກ 3 ໂຕ x100 = ໄດ້ 4,000,000 ກີບ</div>
+        </div>
       </div>
 
       <div id="atab-theme" style="display:none;">
@@ -766,7 +774,7 @@ function defaultConfigJs(){
   return { appTitle:'ປູປາເຕົ້າມະທາໂຊກ (Demo)', appSubtitle:'ຍັງບໍ່ໄດ້ເຊື່ອມ Backend', logoIcon:'🎯', logoUrl:'',
     themePrimary:'#8B7CF6', themeAccent:'#FFA94D', themeWin:'#2FB88B', themeLose:'#F26D6D',
     homeGreeting:'ສະບາຍດີ, ນີ້ແມ່ນສະຫຼຸບຂອງເຈົ້າມື້ນີ້', labelIncome:'ລາຍຮັບ (ຖືກ)', labelExpense:'ລາຍຈ່າຍ (ບໍ່ຖືກ)',
-    labelNet:'ກຳໄລ / ຂາດທຶນ', payoutMultiplier:30 };
+    labelNet:'ກຳໄລ / ຂາດທຶນ', multiplier1:4, multiplier2:20, multiplier3:100 };
 }
 function emptySummary(){ return {income:0, expense:0, net:0, winCount:0, loseCount:0, pendingCount:0, byRound:[], byDay:[], byAnimal:[]}; }
 
@@ -1559,7 +1567,9 @@ function renderAdminForms(){
   document.getElementById('cfg-labelIncome').value = CONFIG.labelIncome||'';
   document.getElementById('cfg-labelExpense').value = CONFIG.labelExpense||'';
   document.getElementById('cfg-labelNet').value = CONFIG.labelNet||'';
-  document.getElementById('cfg-payoutMultiplier').value = CONFIG.payoutMultiplier||30;
+  document.getElementById('cfg-multiplier1').value = CONFIG.multiplier1||4;
+  document.getElementById('cfg-multiplier2').value = CONFIG.multiplier2||20;
+  document.getElementById('cfg-multiplier3').value = CONFIG.multiplier3||100;
   document.getElementById('cfg-themePrimary').value = CONFIG.themePrimary||'#8B7CF6';
   document.getElementById('cfg-themeAccent').value = CONFIG.themeAccent||'#FFA94D';
   document.getElementById('cfg-themeWin').value = CONFIG.themeWin||'#2FB88B';
@@ -1759,7 +1769,9 @@ document.getElementById('saveConfigBtn').addEventListener('click', async ()=>{
     labelIncome: document.getElementById('cfg-labelIncome').value,
     labelExpense: document.getElementById('cfg-labelExpense').value,
     labelNet: document.getElementById('cfg-labelNet').value,
-    payoutMultiplier: Number(document.getElementById('cfg-payoutMultiplier').value) || 30,
+    multiplier1: Number(document.getElementById('cfg-multiplier1').value) || 0,
+    multiplier2: Number(document.getElementById('cfg-multiplier2').value) || 0,
+    multiplier3: Number(document.getElementById('cfg-multiplier3').value) || 0,
     themePrimary: document.getElementById('cfg-themePrimary').value,
     themeAccent: document.getElementById('cfg-themeAccent').value,
     themeWin: document.getElementById('cfg-themeWin').value,
