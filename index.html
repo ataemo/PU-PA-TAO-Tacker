@@ -1238,12 +1238,18 @@ function betCardHtml(b){
     : `<div class="tx-icon-item">❔</div>`;
   const animalNames = animals.map(a=>animalName(a)).join(', ');
   const ownerTag = (currentUser && currentUser.role === 'admin' && b.Username) ? (' · 👤 '+b.Username) : '';
+  // ✅ ໃໝ່: ໂຊຈຳນວນເງິນທີ່ແທງໄວ້ (Stake) ຄຽງຄູ່ກັບຈຳນວນທີ່ໄດ້/ເສຍ —
+  //    ໂດຍສະເພາະຕອນ WIN ຈະໂຊ "ແທງ xxx" ຄຽງກັບ "+yyy" ເພື່ອໃຫ້ຮູ້ວ່າຕົ້ນທຶນເທົ່າໃດ
+  const rateInfo = (status === 'WIN' && Number(b.Stake) > 0)
+    ? ' (x' + (Number(b.Payout) / Number(b.Stake)).toFixed(0) + ')'
+    : '';
+  const stakeTag = ' · ແທງ ' + money(b.Stake) + rateInfo;
   return `
   <div class="tx-row" data-id="${b.ID}">
     <div class="tx-icon">${iconsHtml}</div>
     <div class="tx-mid">
       <div class="tx-title">ງວດທີ ${b.RoundID || '-'}</div>
-      <div class="tx-sub">${formatDisplayDateTime(b.RoundDateTime)} ${animalNames ? '· '+animalNames : ''}${ownerTag}</div>
+      <div class="tx-sub">${formatDisplayDateTime(b.RoundDateTime)} ${animalNames ? '· '+animalNames : ''}${stakeTag}${ownerTag}</div>
     </div>
     <div class="tx-right">
       <span class="tx-amount ${status}">${sign}${money(amt)}</span>
