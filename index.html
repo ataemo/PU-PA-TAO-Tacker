@@ -795,6 +795,26 @@ function defaultConfigJs(){
 function emptySummary(){ return {income:0, expense:0, net:0, winCount:0, loseCount:0, pendingCount:0, byRound:[], byDay:[], byAnimal:[]}; }
 
 /* =================================================================
+   LOCAL CACHE — ບັນທຶກຂໍ້ມູນຄັ້ງລ່າສຸດໄວ້ໃນເຄື່ອງ ເພື່ອສະແດງໜ້າຫຼັກໄດ້ທັນທີ
+   ຕອນເປີດແອັບຄັ້ງຕໍ່ໄປ ໂດຍບໍ່ຕ້ອງລໍ network (ຂ້າມ skeleton loading ໄປເລີຍ),
+   ຈາກນັ້ນຄ່ອຍໄປອັບເດດຂໍ້ມູນຫຼ້າສຸດຢູ່ເບື້ອງຫຼັງແບບງຽບໆ. Cache ແຍກຄົນລະຄີ
+   ຕາມ username ເພື່ອຮອງຮັບຫຼາຍຄົນໃຊ້ເຄື່ອງດຽວກັນ.
+================================================================= */
+function cacheKey_(username){ return 'pupatao_cache_' + String(username||'').trim().toLowerCase(); }
+function loadCache_(username){
+  try {
+    const raw = localStorage.getItem(cacheKey_(username));
+    return raw ? JSON.parse(raw) : null;
+  } catch(e){ return null; }
+}
+function saveCache_(username, data){
+  try { localStorage.setItem(cacheKey_(username), JSON.stringify(data)); } catch(e){ /* cache ເປັນແຕ່ຄວາມສະດວກ, ຖ້າບັນທຶກບໍ່ໄດ້ກໍ່ບໍ່ເປັນຫຍັງ */ }
+}
+function clearCache_(username){
+  try { localStorage.removeItem(cacheKey_(username)); } catch(e){}
+}
+
+/* =================================================================
    BOOTSTRAP — load just enough branding to render the login screen,
    then wait for the user to log in before pulling any bet data.
 ================================================================= */
@@ -802,14 +822,49 @@ async function bootstrap(){
   const splash = document.getElementById('splashScreen');
   splash.querySelector('#splash-logo-img').src = DEFAULT_LOGO;
 
-  // ✅ ກວດ session ທີ່ບັນທຶກໄວ້ກ່ອນເລີຍ (localStorage — ບໍ່ຕ້ອງລໍ network)
-  //    ເພື່ອຕັດສິນໃຈວ່າຈະຂ້າມໜ້າ login ໄປເລີຍ ຫຼື ຕ້ອງສະແດງໜ້າ login
   let saved = null;
   try { saved = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch(e){}
 
   if (saved && saved.username) {
-    // ---- ມີ session ຢູ່ແລ້ວ: ຂ້າມໜ້າ login ໄປເລີຍ, ຄ້າງໜ້າ splash ໄວ້ລໍ config ----
     currentUser = saved;
+
+    // ✅ ລອງໂຫຼດຂໍ້ມູນ Cache ຄັ້ງລ່າສຸດມາສະແດງທັນທີ ໂດຍບໍ່ຕ້ອງລໍ network —
+    //    ຖ້າມີ cache ຈະຂ້າມ splash ໄປໜ້າຫຼັກເລີຍທັນທີ, ຈາກນັ້ນຄ່ອຍໄປອັບເດດ
+    //    ຂໍ້ມູນຫຼ້າສຸດຢູ່ເບື້ອງຫຼັງແບບງຽບໆ (ບໍ່ໂຊ skeleton ອີກຮອບ)
+    const cache = loadCache_(currentUser.username);
+    if (cache) {
+      CONFIG  = cache.config  || defaultConfigJs();
+      ANIMALS = Array.isArray(cache.animals) ? cache.animals : [];
+      BETS    = Array.isArray(cache.bets)    ? cache.bets    : [];
+      ROUNDS  = Array.isArray(cache.rounds)  ? cache.rounds  : [];
+      const summary = cache.summary || emptySummary();
+
+      applyTheme();
+      splash.classList.add('hide');
+      document.getElementById('app').style.display = 'flex';
+
+      safe('brand', () => renderBrand());
+      safe('user-chrome', () => renderUserChrome());
+      document.getElementById('sb-admin-link').style.display = currentUser.role === 'admin' ? 'flex' : 'none';
+      document.getElementById('adminNavBtn').style.display = currentUser.role === 'admin' ? 'block' : 'none';
+      safe('home', () => renderHome(summary));
+      safe('history', () => renderHistory());
+      safe('stats', () => renderStats(summary));
+      safe('profile', () => renderProfile(summary));
+      safe('animal-pickers', () => renderAnimalPickers());
+      if (currentUser.role === 'admin') safe('admin-forms', () => renderAdminForms());
+      document.getElementById('liveLabel').textContent = 'ກຳລັງອັບເດດ...';
+
+      // ໄປດຶງຂໍ້ມູນຫຼ້າສຸດຢູ່ເບື້ອງຫຼັງ ໂດຍບໍ່ໃຫ້ໜ້າຈໍກະພິບ
+      refreshData();
+      if (!window.__pollingStarted) {
+        window.__pollingStarted = true;
+        setInterval(refreshData, 20000);
+      }
+      return;
+    }
+
+    // ---- ບໍ່ມີ cache (login ຄັ້ງທຳອິດຢູ່ເຄື່ອງນີ້): ລໍໂຫຼດແບບປົກກະຕິ ----
     try {
       const cfg = await callServer('getConfig');
       CONFIG = cfg && !cfg.error ? cfg : defaultConfigJs();
@@ -888,6 +943,7 @@ async function doLogin(){
 }
 
 function doLogout(){
+  if (currentUser) clearCache_(currentUser.username);
   currentUser = null;
   BETS = []; ROUNDS = [];
   try { localStorage.removeItem(SESSION_KEY); } catch(e){}
@@ -978,6 +1034,12 @@ async function init(){
 
   setSyncing(false);
 
+  // ✅ ບັນທຶກ cache ໄວ້ ເພື່ອໃຫ້ຄັ້ງໜ້າເປີດແອັບ ສະແດງໜ້າຫຼັກໄດ້ທັນທີ
+  //    (ບັນທຶກສະເພາະຕອນເຊື່ອມ Backend ຈິງໄດ້ — ບໍ່ບັນທຶກຂໍ້ມູນ Demo)
+  if (IS_LIVE) {
+    saveCache_(currentUser.username, { config: CONFIG, animals: ANIMALS, bets: BETS, rounds: ROUNDS, summary: summary });
+  }
+
   if (!window.__pollingStarted) {
     window.__pollingStarted = true;
     setInterval(refreshData, 20000); // light polling for "realtime" sync
@@ -1000,16 +1062,27 @@ async function refreshData(){
     const scopeCtx = { username: currentUser.username, isAdmin: currentUser.role === 'admin' };
     const data = await callServer('getAll', scopeCtx);
     if (data && !data.error) {
-      BETS = Array.isArray(data.bets) ? data.bets : BETS;
-      ROUNDS = Array.isArray(data.rounds) ? data.rounds : ROUNDS;
+      CONFIG  = data.config || CONFIG;
+      ANIMALS = Array.isArray(data.animals) ? data.animals : ANIMALS;
+      BETS    = Array.isArray(data.bets)    ? data.bets    : BETS;
+      ROUNDS  = Array.isArray(data.rounds)  ? data.rounds  : ROUNDS;
       const summary = data.summary || emptySummary();
+      safe('theme', () => applyTheme());
+      safe('brand', () => renderBrand());
       safe('home', () => renderHome(summary));
       safe('history', () => renderHistory());
       safe('stats', () => renderStats(summary));
       safe('profile', () => renderProfile(summary));
       safe('rounds', () => renderRoundsList());
       safe('history-rounds', () => { if (historyFilter === 'ROUNDS') renderHistoryRoundsList(); });
+      safe('animal-pickers', () => renderAnimalPickers());
       hideErrorBanner();
+      document.getElementById('liveLabel').textContent = IS_LIVE ? 'ເຊື່ອມຕໍ່ Backend ແລ້ວ' : 'ໂໝດ Demo (ຍັງເຊື່ອມ Backend ບໍ່ໄດ້)';
+
+      // ✅ ອັບເດດ cache ໃຫ້ທັນສະໄໝທຸກຄັ້ງທີ່ດຶງຂໍ້ມູນສຳເລັດ
+      if (IS_LIVE) {
+        saveCache_(currentUser.username, { config: CONFIG, animals: ANIMALS, bets: BETS, rounds: ROUNDS, summary: summary });
+      }
     }
   } catch (err) {
     // silent — the app keeps showing the last good data
