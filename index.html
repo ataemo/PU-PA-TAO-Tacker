@@ -875,6 +875,42 @@ function tickAdminRoundStatus(){
   box.style.color = color;
 }
 
+async function loadOrphanedBets(){
+  const box = document.getElementById('orphanedBetsBox');
+  if (!box) return;
+  try {
+    const res = await callServer('getOrphanedBets', { staleHours: 2, toleranceMin: 90 });
+    if (!res || res.error || !res.count) { box.style.display = 'none'; return; }
+    box.style.display = 'block';
+    document.getElementById('orphanedBetsTitle').textContent =
+      `⚠️ ພົບ ${res.count} ລາຍການ "ລໍຖ້າ" ຄ້າງດົນຜິດປົກກະຕິ (ອາດເລກງວດບໍ່ກົງກັນ)`;
+    document.getElementById('orphanedBetsList').innerHTML = res.items.map(it => `
+      <div class="tx-row" style="cursor:default; background:#fff;">
+        <div class="tx-mid">
+          <div class="tx-title">ງວດທີ ${it.roundId} · ${it.username || '-'}</div>
+          <div class="tx-sub">ຄ້າງມາ ${it.hoursSince} ຊົ່ວໂມງ · ${it.animals} · ${money(it.stake)}</div>
+          ${it.suggestedRoundId
+            ? `<div class="tx-sub" style="color:var(--win); font-weight:700;">💡 ໜ້າຈະແມ່ນງວດ ${it.suggestedRoundId} (ຫ່າງ ${it.suggestedDiffMin} ນາທີ)</div>`
+            : `<div class="tx-sub">ບໍ່ພົບງວດໃກ້ຄຽງໃຫ້ແນະນຳ — ກະລຸນາກວດເອງ</div>`}
+        </div>
+        ${it.suggestedRoundId
+          ? `<button class="btn secondary" style="width:auto; padding:8px 14px;" data-bet="${it.betId}" data-round="${it.suggestedRoundId}">ຈັບຄູ່ນຳ</button>`
+          : ''}
+      </div>`).join('');
+    document.querySelectorAll('#orphanedBetsList [data-bet]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        try {
+          const r = await callServer('relinkBet', { betId: Number(btn.dataset.bet), newRoundId: btn.dataset.round });
+          if (r && r.error) { showToast('ບໍ່ສຳເລັດ: ' + r.error); return; }
+          showToast('ຈັບຄູ່ ແລະ ຕັດຜົນແລ້ວ ✅');
+          await refreshData();
+          await loadOrphanedBets();
+        } catch (err) { showToast('ລົ້ມເຫຼວ: ' + err.message); }
+      });
+    });
+  } catch (err) { box.style.display = 'none'; }
+}
+
 /* =================================================================
    STATE
 ================================================================= */
@@ -1968,6 +2004,7 @@ function switchAdminTab(atab){
   const saveWrap = document.getElementById('atab-brand-save-wrap');
   if (saveWrap) saveWrap.style.display = (atab==='users') ? 'none' : 'block';
   if (atab === 'users') loadUsersList();
+  if (atab === 'rounds') loadOrphanedBets();
   updatePillFade();
 }
 
