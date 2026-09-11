@@ -576,7 +576,13 @@
           <span id="adminRoundStatusIcon">📢</span>
           <span id="adminRoundStatusText">ກຳລັງໂຫຼດ...</span>
         </div>
-        <div class="field"><label>ເລກງວດ</label><input type="text" id="rd-id" placeholder="36260150"></div>
+        <div class="field">
+          <label>ເລກງວດ</label>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="rd-id" placeholder="36260150" style="flex:1;">
+            <button type="button" class="btn secondary" id="refillRoundBtn" style="width:auto; white-space:nowrap; padding:11px 16px; margin-top:0;">🔄 ດຶງງວດຕໍ່ໄປ</button>
+          </div>
+        </div>
         <div class="field"><label>ວັນທີ-ເວລາງວດ</label><input type="datetime-local" id="rd-datetime"></div>
         <label style="font-size:12.5px; color:var(--text-dim); font-weight:600;">ຜົນອອກ 3 ອັນດັບ — ກົດເລືອກສັດຕາມລຳດັບ (ອັນດັບ 1 → 3), ສັດຊ້ຳກັນໄດ້, ໃຊ້ລູກສອນ/✖️ ໃນຊ່ອງອັນດັບເພື່ອສະຫຼັບ ຫຼື ລຶບ</label>
         <div class="rank-slots" id="rd-rank-slots"></div>
@@ -819,6 +825,28 @@ function getSuggestedRoundDateTime(){
   d.setHours(hh, mm, 0, 0);
   return d;
 }
+
+/**
+ * ຕື່ມຟອມ "ຜົນງວດ" ຂອງ admin ໃຫ້ອັດຕະໂນມັດ ໂດຍໃຊ້ຕົວຄິດໄລ່ດຽວກັນກັບ
+ * ຟອມ "ບັນທຶກລາຍການແທງ" ຂອງຄົນແທງ — ເພື່ອຮັບປະກັນວ່າ ເລກງວດ ແລະ ເວລາ
+ * ຈະຕົງກັນສະເໝີ ບໍ່ວ່າຈະເປັນ admin ຫຼື ຄົນແທງ ເປັນຄົນເປີດຟອມ.
+ * force=true ຈະທັບຄ່າເກົ່າ (ໃຊ້ຫຼັງບັນທຶກງວດສຳເລັດ), ບໍ່ tick force ຈະຕື່ມ
+ * ໃຫ້ສະເພາະຕອນຊ່ອງຍັງຫວ່າງເທົ່ານັ້ນ (ກັນບໍ່ໃຫ້ທັບຂໍ້ມູນທີ່ admin ກຳລັງແກ້ໄຂ)
+ */
+function prefillRoundForm(force){
+  const idEl = document.getElementById('rd-id');
+  const dtEl = document.getElementById('rd-datetime');
+  if (!idEl || !dtEl) return;
+  if (!force && (idEl.value.trim() !== '' || dtEl.value.trim() !== '')) return;
+  const suggestedId = suggestedNextRoundId();
+  if (suggestedId) idEl.value = suggestedId;
+  dtEl.value = isoLocalFromDate(getSuggestedRoundDateTime());
+}
+
+document.getElementById('refillRoundBtn')?.addEventListener('click', () => {
+  prefillRoundForm(true);
+  showToast('ດຶງເລກງວດ + ເວລາ ຂອງງວດຕໍ່ໄປໃຫ້ແລ້ວ 🔄');
+});
 
 function tickRoundCountdown(){
   const textEl = document.getElementById('roundCountdownText');
@@ -2004,7 +2032,7 @@ function switchAdminTab(atab){
   const saveWrap = document.getElementById('atab-brand-save-wrap');
   if (saveWrap) saveWrap.style.display = (atab==='users') ? 'none' : 'block';
   if (atab === 'users') loadUsersList();
-  if (atab === 'rounds') loadOrphanedBets();
+  if (atab === 'rounds') { loadOrphanedBets(); prefillRoundForm(); }
   updatePillFade();
 }
 
@@ -2272,9 +2300,8 @@ document.getElementById('saveRoundBtn').addEventListener('click', async ()=>{
     if (res && res.error) { showToast('ບໍ່ສຳເລັດ: ' + res.error); return; }
     ROUNDS = await callServer('getRounds');
     renderRoundsList();
-    document.getElementById('rd-id').value = '';
-    document.getElementById('rd-datetime').value = '';
     resetRoundAnimalPicker();
+    prefillRoundForm(true);
     const settled = res && res.settled;
     const settledMsg = settled ? ` (ຕັດງວດ: ຖືກ ${settled.winCount||0} ‧ ບໍ່ຖືກ ${settled.loseCount||0})` : '';
     showToast('ບັນທຶກຜົນງວດແລ້ວ ✅' + settledMsg);
