@@ -446,6 +446,38 @@
         <div class="section-title" style="margin-top:0;">ສັດທີ່ຖືກເລືອກເລື້ອຍທີ່ສຸດ</div>
         <canvas id="animalChart" height="180"></canvas>
       </div>
+      <div class="chart-card">
+        <div class="section-title" style="margin-top:0;">
+          🔮 ພະຍາກອນງວດຕໍ່ໄປ
+          <span class="link" id="refreshPredictionBtn">🔄 ອັບເດດ</span>
+        </div>
+        <div class="hint" style="margin-bottom:10px;">
+          ⚠️ ອີງຈາກສະຖິติຄວາມຖີ່ຍ້ອນຫຼັງເທົ່ານັ້ນ — ບໍ່ແມ່ນການຮັບປະກັນຜົນທີ່ຈະອອກ. ຖ້າແຕ່ລະງວດແມ່ນສຸ່ມແທ້ໆ ໂອກາດຂອງທຸກໂຕແມ່ນເທົ່າກັນສະເໝີ.
+        </div>
+
+        <div id="predictionConfidenceBox" style="border-radius:14px; padding:10px 14px; margin-bottom:14px; font-size:12px; font-weight:700; display:none;"></div>
+
+        <div class="pill-tabs" id="predictionTabs" style="margin-bottom:14px;">
+          <div class="pill active" data-ptab="overall">ພາບລວມ</div>
+          <div class="pill" data-ptab="slot">ຕາມຮອບງວດ</div>
+          <div class="pill" data-ptab="pairs">ຄູ່ອອກນຳກັນ</div>
+        </div>
+
+        <div id="ptab-overall">
+          <canvas id="predictionChart" height="200"></canvas>
+          <div id="predictionList" style="margin-top:14px;"></div>
+        </div>
+
+        <div id="ptab-slot" style="display:none;">
+          <div class="pill-tabs" id="slotSubTabs" style="margin-bottom:12px;"></div>
+          <div id="slotList"></div>
+        </div>
+
+        <div id="ptab-pairs" style="display:none;">
+          <div class="hint" style="margin-bottom:10px;">10 ຄູ່ທີ່ອອກນຳກັນເລື້ອຍທີ່ສຸດ (ນັບຈາກຜົນງວດ 3 ອັນດັບ ບໍ່ວ່າຈະຢູ່ອັນດັບໃດ)</div>
+          <div id="pairsList"></div>
+        </div>
+      </div>
     </div>
 
     <!-- PROFILE -->
@@ -517,6 +549,11 @@
           <label>ອັດຕາຈ່າຍສະເພາະແຕ່ລະຄູ່ (ບໍ່ຕັ້ງ = ໃຊ້ຄ່າພື້ນຖານດ້ານເທິງ)</label>
           <div id="comboRatesList"></div>
           <div class="hint">ຕົວຢ່າງ: ปู+เสือ ຕັ້ງ 6 → ຖ້າແທງ 50,000 ແລ້ວທັງ 2 ໂຕນີ້ອອກໃນຜົນງວດ ຈະໄດ້ 300,000</div>
+        </div>
+        <div class="field">
+          <label>🔮 ຄ່າ Half-life ຂອງພະຍາກອນ (ຫົວໜ່ວຍ: ຈຳນວນງວດ)</label>
+          <input type="number" id="cfg-predictionHalfLife" placeholder="30">
+          <div class="hint">ຄ່າຍິ່ງນ້ອຍ = ໃຫ້ນ້ຳໜັກງວດຫຼ້າສຸດຫຼາຍຂຶ້ນ (ເຊັ່ນ 10) ‧ ຄ່າຍິ່ງໃຫຍ່ = ອີງປະຫວັດທັງໝົດເທົ່າໆກັນ (ເຊັ່ນ 200) ‧ ຄ່າເລີ່ມຕົ້ນ 30</div>
         </div>
       </div>
 
@@ -918,6 +955,10 @@ function demoFallback(fn, args){
   if (fn==='getRounds') return [];
   if (fn==='getSummary') return {income:120000, expense:10000, net:110000, winCount:1, loseCount:1, pendingCount:0, byDay:[{day:'2026-09-08', income:120000, expense:10000}], byAnimal:[]};
   if (fn==='uploadLogo') return {ok:true, url:''};
+  if (fn==='getPrediction') return {
+    ok:true, totalRounds:0, halfLife:30, items:[], bySlot:[], topPairs:[],
+    confidence:{ level:'low', label:'ຂໍ້ມູນຍັງໜ້ອຍ — % ອາດບໍ່ໜ້າເຊື່ອຖື', percent:5, totalRounds:0 }
+  };
   return {ok:true};
 }
 function defaultConfigJs(){
@@ -1451,7 +1492,7 @@ document.getElementById('exportCsvBtn').addEventListener('click', exportCsv);
 /* =================================================================
    STATS
 ================================================================= */
-let dayChart, statusChart, animalChart;
+let dayChart, statusChart, animalChart, predictionChart;
 function renderStats(summary){
   summary = summary || emptySummary();
   const ctx1 = document.getElementById('dayChart');
@@ -1495,6 +1536,153 @@ function renderStats(summary){
                y:{ticks:{color:'#8B89A3'}, grid:{display:false}} } }
   });
 }
+
+/* =================================================================
+   PREDICTION — ພະຍາກອນງວດຕໍ່ໄປ + ຕາມຮອບງວດ + ຄູ່ອອກນຳກັນ + ຄວາມໝັ້ນໃຈ
+================================================================= */
+let PREDICTION_DATA = null;
+let activePredictionTab = 'overall';
+let activeSlotRound = 1;
+
+async function loadPrediction(){
+  const listEl = document.getElementById('predictionList');
+  if (listEl) listEl.innerHTML = '<div class="hint">ກຳລັງຄິດໄລ່...</div>';
+  try {
+    const res = await callServer('getPrediction', {});
+    if (res && res.error) { showToast('ໂຫຼດພະຍາກອນບໍ່ໄດ້: ' + res.error); return; }
+    PREDICTION_DATA = res;
+    renderConfidenceBox(res.confidence);
+    renderPrediction(res);
+    renderSlotTabs(res.bySlot || []);
+    renderPairsList(res.topPairs || []);
+  } catch (err) {
+    showToast('ໂຫຼດພະຍາກອນລົ້ມເຫຼວ: ' + err.message);
+  }
+}
+
+function renderConfidenceBox(conf){
+  const box = document.getElementById('predictionConfidenceBox');
+  if (!box) return;
+  if (!conf) { box.style.display = 'none'; return; }
+  const colors = {
+    low:    { bg:'var(--lose-soft)',   color:'var(--lose)'   },
+    medium: { bg:'var(--accent-soft)', color:'var(--accent)' },
+    high:   { bg:'var(--win-soft)',    color:'var(--win)'    }
+  };
+  const c = colors[conf.level] || colors.low;
+  box.style.display = 'block';
+  box.style.background = c.bg;
+  box.style.color = c.color;
+  const icon = conf.level === 'high' ? '✅' : (conf.level === 'medium' ? '⚠️' : '🔺');
+  box.textContent = `${icon} ${conf.label} (ອີງຈາກ ${conf.totalRounds} ງວດ)`;
+}
+
+function renderPrediction(res){
+  const items = (res && Array.isArray(res.items)) ? res.items : [];
+  const ctx = document.getElementById('predictionChart');
+  if (!ctx) return;
+  if (predictionChart) predictionChart.destroy();
+  predictionChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: items.map(i => i.name),
+      datasets: [{ label:'ໂອກາດ (%)', data: items.map(i=>i.percent), backgroundColor:'#8B7CF6', borderRadius:8 }]
+    },
+    options: {
+      indexAxis:'y', responsive:true, plugins:{legend:{display:false}},
+      scales:{ x:{ ticks:{color:'#8B89A3'}, grid:{color:'#ECEAF6'} }, y:{ ticks:{color:'#8B89A3'}, grid:{display:false} } }
+    }
+  });
+
+  const listEl = document.getElementById('predictionList');
+  if (!listEl) return;
+  listEl.innerHTML = items.map((it, idx) => {
+    const agoText = it.lastSeenRoundsAgo === null ? 'ຍັງບໍ່ເຄີຍອອກ'
+      : (it.lastSeenRoundsAgo === 0 ? 'ອອກງວດລ່າສຸດ' : `ຄ້າງ ${it.lastSeenRoundsAgo} ງວດ`);
+    return `<div class="tx-row" style="cursor:default;">
+      <div class="tx-icon"><div class="tx-icon-item">${iconInnerHtml(it.icon)}</div></div>
+      <div class="tx-mid">
+        <div class="tx-title">${idx+1}. ${it.name}</div>
+        <div class="tx-sub">ຄວາມຖີ່ດິບ ${it.rawCount} ຄັ້ງ ‧ ${agoText}</div>
+      </div>
+      <div class="tx-right"><span class="tx-amount" style="color:var(--primary);">${it.percent}%</span></div>
+    </div>`;
+  }).join('');
+}
+
+/* ---- ສະຫຼັບ ພາບລວມ / ຕາມຮອບງວດ / ຄູ່ອອກນຳກັນ ---- */
+document.getElementById('predictionTabs')?.addEventListener('click', (e)=>{
+  const p = e.target.closest('.pill[data-ptab]');
+  if (!p) return;
+  document.querySelectorAll('#predictionTabs .pill[data-ptab]').forEach(x=>x.classList.toggle('active', x===p));
+  activePredictionTab = p.dataset.ptab;
+  ['overall','slot','pairs'].forEach(t=>{
+    const el = document.getElementById('ptab-'+t);
+    if (el) el.style.display = (t===activePredictionTab) ? 'block' : 'none';
+  });
+});
+
+/* ---- ວິເຄາະຕາມຮອບງວດ 1-7 ---- */
+function renderSlotTabs(bySlot){
+  const tabsEl = document.getElementById('slotSubTabs');
+  if (!tabsEl) return;
+  if (bySlot.length === 0) {
+    tabsEl.innerHTML = '';
+    document.getElementById('slotList').innerHTML = emptyHtml('ຍັງບໍ່ມີຂໍ້ມູນພຽງພໍ', 'ຕ້ອງມີຜົນງວດຍ້ອນຫຼັງກ່ອນຈຶ່ງວິເຄາະຕາມຮອບໄດ້');
+    return;
+  }
+  tabsEl.innerHTML = bySlot.map(s=>`<div class="pill${s.round===activeSlotRound?' active':''}" data-slot="${s.round}">ງວດ ${s.round}</div>`).join('');
+  tabsEl.querySelectorAll('.pill[data-slot]').forEach(p=>{
+    p.addEventListener('click', ()=>{
+      activeSlotRound = Number(p.dataset.slot);
+      tabsEl.querySelectorAll('.pill[data-slot]').forEach(x=>x.classList.toggle('active', Number(x.dataset.slot)===activeSlotRound));
+      renderSlotList(bySlot);
+    });
+  });
+  renderSlotList(bySlot);
+}
+
+function renderSlotList(bySlot){
+  const el = document.getElementById('slotList');
+  if (!el) return;
+  const slot = bySlot.find(s=>s.round===activeSlotRound);
+  if (!slot || slot.totalRounds === 0) {
+    el.innerHTML = emptyHtml('ຍັງບໍ່ມີຂໍ້ມູນຮອບນີ້', 'ຮໍຂໍ້ມູນຜົນງວດຮອບນີ້ຫຼາຍຂຶ້ນ');
+    return;
+  }
+  el.innerHTML = `<div class="hint" style="margin-bottom:8px;">ຄາດຜົນອອກເວລາປະມານ ${slot.resultTime} ‧ ອີງຈາກ ${slot.totalRounds} ງວດຍ້ອນຫຼັງໃນຮອບນີ້</div>` +
+    slot.items.map((it,idx)=>`<div class="tx-row" style="cursor:default;">
+      <div class="tx-icon"><div class="tx-icon-item">${iconInnerHtml(it.icon)}</div></div>
+      <div class="tx-mid">
+        <div class="tx-title">${idx+1}. ${it.name}</div>
+        <div class="tx-sub">ອອກ ${it.rawCount} ຄັ້ງ ຈາກ ${slot.totalRounds} ງວດ</div>
+      </div>
+      <div class="tx-right"><span class="tx-amount" style="color:var(--primary);">${it.percent}%</span></div>
+    </div>`).join('');
+}
+
+/* ---- ຄູ່ທີ່ອອກນຳກັນເລື້ອຍ ---- */
+function renderPairsList(pairs){
+  const el = document.getElementById('pairsList');
+  if (!el) return;
+  if (!pairs || pairs.length === 0) {
+    el.innerHTML = emptyHtml('ຍັງບໍ່ມີຂໍ້ມູນຄູ່', 'ຕ້ອງມີຜົນງວດຍ້ອນຫຼັງກ່ອນຈຶ່ງວິເຄາະຄູ່ໄດ້');
+    return;
+  }
+  el.innerHTML = pairs.map((p,idx)=>`<div class="tx-row" style="cursor:default;">
+    <div class="tx-icon">
+      <div class="tx-icon-item">${iconInnerHtml(p.iconA)}</div>
+      <div class="tx-icon-item">${iconInnerHtml(p.iconB)}</div>
+    </div>
+    <div class="tx-mid">
+      <div class="tx-title">${idx+1}. ${p.nameA} + ${p.nameB}</div>
+      <div class="tx-sub">ອອກນຳກັນ ${p.count} ຄັ້ງ</div>
+    </div>
+    <div class="tx-right"><span class="tx-amount" style="color:var(--primary);">${p.percent}%</span></div>
+  </div>`).join('');
+}
+
+document.getElementById('refreshPredictionBtn')?.addEventListener('click', loadPrediction);
 
 /* =================================================================
    PROFILE
@@ -1546,6 +1734,7 @@ function goto(tab){
   document.getElementById('tab-'+tab).style.display='block';
   document.querySelectorAll('.nav-item[data-tab]').forEach(n=>n.classList.toggle('active', n.dataset.tab===tab));
   document.querySelectorAll('.bottom-nav .item[data-tab]').forEach(n=>n.classList.toggle('active', n.dataset.tab===tab));
+  if (tab === 'stats') loadPrediction();
 }
 document.querySelectorAll('[data-tab]').forEach(el=>el.addEventListener('click', ()=>goto(el.dataset.tab)));
 document.querySelectorAll('[data-goto]').forEach(el=>el.addEventListener('click', ()=>goto(el.dataset.goto)));
@@ -1825,6 +2014,7 @@ function renderAdminForms(){
   document.getElementById('cfg-multiplier2').value = CONFIG.multiplier2||3;
   document.getElementById('cfg-multiplier3').value = CONFIG.multiplier3||4;
   document.getElementById('cfg-multiplierCombo').value = CONFIG.multiplierCombo||1;
+  document.getElementById('cfg-predictionHalfLife').value = CONFIG.predictionHalfLife||30;
   document.getElementById('cfg-themePrimary').value = CONFIG.themePrimary||'#8B7CF6';
   document.getElementById('cfg-themeAccent').value = CONFIG.themeAccent||'#FFA94D';
   document.getElementById('cfg-themeWin').value = CONFIG.themeWin||'#2FB88B';
@@ -2052,6 +2242,7 @@ document.getElementById('saveConfigBtn').addEventListener('click', async ()=>{
     multiplier2: Number(document.getElementById('cfg-multiplier2').value) || 0,
     multiplier3: Number(document.getElementById('cfg-multiplier3').value) || 0,
     multiplierCombo: Number(document.getElementById('cfg-multiplierCombo').value) || 0,
+    predictionHalfLife: Number(document.getElementById('cfg-predictionHalfLife').value) || 30,
     themePrimary: document.getElementById('cfg-themePrimary').value,
     themeAccent: document.getElementById('cfg-themeAccent').value,
     themeWin: document.getElementById('cfg-themeWin').value,
