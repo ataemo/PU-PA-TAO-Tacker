@@ -331,19 +331,6 @@
   .user-row .ur-sub{font-size:11.5px; color:var(--text-dim);}
   .user-row .ur-actions{display:flex; gap:8px;}
   .user-row .ur-actions span{cursor:pointer; font-size:16px;}
-
-  /* ---------- ✅ ໃໝ່: Open-round mini form + list (admin > ຜົນງວດ) ---------- */
-  .open-round-box{background:var(--primary-soft); border-radius:18px; padding:16px; margin-bottom:18px;}
-  .open-round-box .ob-title{font-weight:700; font-size:13.5px; color:var(--text); margin-bottom:10px; display:flex; align-items:center; gap:6px;}
-  .open-round-item{display:flex; align-items:center; gap:10px; background:var(--card); border-radius:14px; padding:10px 12px; margin-bottom:8px; border:1px solid var(--border);}
-  .open-round-item .or-mid{flex:1; min-width:0;}
-  .open-round-item .or-id{font-weight:700; font-size:13.5px; color:var(--text);}
-  .open-round-item .or-dt{font-size:11px; color:var(--text-dim);}
-  .open-round-item .or-fill{font-size:11.5px; font-weight:700; color:var(--primary); cursor:pointer; white-space:nowrap;}
-  .open-round-item .or-del{font-size:15px; color:var(--lose); cursor:pointer;}
-  .round-badge{display:inline-block; font-size:9.5px; font-weight:800; padding:2px 8px; border-radius:10px; margin-left:6px; vertical-align:middle;}
-  .round-badge.OPEN{background:var(--win-soft); color:var(--win);}
-  .round-badge.CLOSED{background:var(--card-2); color:var(--text-dim);}
 </style>
 </head>
 <body>
@@ -589,20 +576,6 @@
           <span id="adminRoundStatusIcon">📢</span>
           <span id="adminRoundStatusText">ກຳລັງໂຫຼດ...</span>
         </div>
-
-        <!-- ✅ ໃໝ່: ເປີດງວດລ່ວງໜ້າ — ໃຫ້ຄົນແທງເລືອກຈາກ dropdown ແທນພິມເອງ -->
-        <div class="open-round-box">
-          <div class="ob-title">🆕 ເປີດງວດລ່ວງໜ້າ (ໃຫ້ຄົນແທງເລືອກໄດ້ ກ່ອນຮູ້ຜົນ)</div>
-          <div class="row2">
-            <div class="field" style="margin-bottom:8px;"><label>ເລກງວດ</label><input type="text" id="or-id" placeholder="36260150"></div>
-            <div class="field" style="margin-bottom:8px;"><label>ວັນທີ-ເວລາຄາດວ່າອອກຜົນ</label><input type="datetime-local" id="or-datetime"></div>
-          </div>
-          <button class="btn" id="openRoundBtn" style="margin-top:2px;">📢 ເປີດຮັບແທງງວດນີ້</button>
-          <div class="hint">ຫຼັງກົດແລ້ວ ງວດນີ້ຈະຂຶ້ນໃນ dropdown ໜ້າແທງຂອງທຸກຄົນທັນທີ — ຄົນແທງບໍ່ຕ້ອງພິມເລກງວດເອງອີກຕໍ່ໄປ</div>
-          <div id="openRoundsList" style="margin-top:12px;"></div>
-        </div>
-
-        <div class="section-title" style="margin-top:0;">✍️ ໃສ່ຜົນງວດ (ຕັດງວດອັດຕະໂນມັດ)</div>
         <div class="field"><label>ເລກງວດ</label><input type="text" id="rd-id" placeholder="36260150"></div>
         <div class="field"><label>ວັນທີ-ເວລາງວດ</label><input type="datetime-local" id="rd-datetime"></div>
         <label style="font-size:12.5px; color:var(--text-dim); font-weight:600;">ຜົນອອກ 3 ອັນດັບ — ກົດເລືອກສັດຕາມລຳດັບ (ອັນດັບ 1 → 3), ສັດຊ້ຳກັນໄດ້, ໃຊ້ລູກສອນ/✖️ ໃນຊ່ອງອັນດັບເພື່ອສະຫຼັບ ຫຼື ລຶບ</label>
@@ -642,14 +615,7 @@
   <div class="sheet">
     <h3 id="betModalTitle">ບັນທຶກລາຍການແທງ</h3>
     <div class="row2">
-      <div class="field">
-        <label>ເລກງວດ</label>
-        <select id="bet-roundId"></select>
-        <label style="display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-dim); font-weight:600; cursor:pointer; margin-top:8px;">
-          <input type="checkbox" id="bet-roundId-manual" style="width:auto; margin:0;"> ພິມເລກງວດເອງ (ແທງຍ້ອນຫຼັງ)
-        </label>
-        <input type="text" id="bet-roundId-text" placeholder="36260150" style="display:none; margin-top:6px;">
-      </div>
+      <div class="field"><label>ເລກງວດ</label><input type="text" id="bet-roundId" placeholder="36260150"></div>
       <div class="field"><label>ວັນທີ-ເວລາງວດ</label><input type="datetime-local" id="bet-roundDateTime"></div>
     </div>
     <div class="hint" id="bet-round-hint" style="margin:-8px 0 14px;"></div>
@@ -783,12 +749,9 @@ function animalIconHtml(id){
   return iconInnerHtml(a ? a.Icon : '');
 }
 function escAttr(s){ return String(s == null ? '' : s).replace(/"/g,'&quot;'); }
-function escHtml(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 /* =================================================================
    ຕາຕະລາງງວດປະຈຳວັນ (ຄົງທີ່) — ແກ້ເວລາຕົງນີ້ໄດ້ຖ້າຕາຕະລາງປ່ຽນໃນອະນາຄົດ
-   ✅ ແກ້ໄຂ: ງວດທີ 7 ອອກຜົນເວລາ 20:05 (ບໍ່ແມ່ນ 20:12 ຄືເກົ່າ) —
-   ຕ້ອງແກ້ໃຫ້ກົງກັບ ROUND_SLOTS ຝັ່ງ Code.gs ນຳ (ໃຊ້ໃນການວິເຄາະສະຖິติ)
 ================================================================= */
 const ROUND_SCHEDULE = [
   { round:1, buyStart:'08:00', buyEnd:'12:05', resultTime:'12:12' },
@@ -797,7 +760,7 @@ const ROUND_SCHEDULE = [
   { round:4, buyStart:'14:20', buyEnd:'16:05', resultTime:'16:12' },
   { round:5, buyStart:'16:20', buyEnd:'17:05', resultTime:'17:13' },
   { round:6, buyStart:'17:20', buyEnd:'18:05', resultTime:'18:12' },
-  { round:7, buyStart:'18:20', buyEnd:'19:55', resultTime:'20:05' }
+  { round:7, buyStart:'18:20', buyEnd:'20:05', resultTime:'20:12' }
 ];
 
 function timeStrToMinutes(t){ const [h,m]=t.split(':').map(Number); return h*60+m; }
@@ -823,7 +786,7 @@ function getRoundStatus(){
     if (nextBuyStart !== null && nowMin >= resultTime && nowMin < nextBuyStart)
       return { phase:'GAP', round:r.round, nextRound:r.round+1, targetMin:nextBuyStart, label:`ຜົນງວດທີ ${r.round} ອອກແລ້ວ • ງວດທີ ${r.round+1} ຈະເປີດຮັບອີກ` };
   }
-  // ຫຼັງງວດສຸດທ້າຍຂອງມື້ (ຫຼັງ 20:05) → ລໍງວດ 1 ຂອງມື້ອື່ນ
+  // ຫຼັງງວດສຸດທ້າຍຂອງມື້ (ຫຼັງ 20:12) → ລໍງວດ 1 ຂອງມື້ອື່ນ
   return { phase:'DONE', round:null, targetMin: timeStrToMinutes(ROUND_SCHEDULE[0].buyStart) + 1440, label:'ວັນນີ້ອອກຄົບທຸກງວດແລ້ວ • ງວດ 1 ຈະເປີດຮັບອີກ' };
 }
 
@@ -833,6 +796,15 @@ function getActiveOrUpcomingRoundNumber(){
   if (status.phase === 'GAP') return status.nextRound;
   if (status.phase === 'DONE') return 1;
   return status.round;
+}
+
+// ເພີ່ມຟັງຊັນນີ້ໄວ້ໃກ້ໆ getSuggestedRoundDateTime()
+function suggestedNextRoundId(){
+  if (!Array.isArray(ROUNDS) || ROUNDS.length === 0) return '';
+  const lastId = String(ROUNDS[0].RoundID || '').trim();
+  const n = Number(lastId);
+  if (!isFinite(n)) return '';           // ຖ້າແປງເປັນເລກບໍ່ໄດ້ ໃຫ້ປ່ອຍວ່າງ ບັງຄັບໃຫ້ພິມເອງ
+  return String(n + 1);                  // ງວດຫຼ້າສຸດ + 1 = ງວດຕໍ່ໄປ (ຍັງບໍ່ຮູ້ຜົນ)
 }
 
 /** ຄາດເວລາອອກຜົນຂອງງວດທີ່ຄວນຜູກນຳ ນຳໄປໃສ່ໃນຊ່ອງ "ວັນທີ-ເວລາງວດ" ອັດຕະໂນມັດ */
@@ -910,7 +882,6 @@ let CONFIG = {};
 let ANIMALS = [];
 let BETS = [];
 let ROUNDS = [];
-let OPEN_ROUNDS = [];        // ✅ ໃໝ່: ງວດທີ່ "ເປີດຮັບ" ຢູ່ (ຍັງບໍ່ມີຜົນ) — ໃຊ້ສ້າງ dropdown ໜ້າແທງ
 let currentStatus = 'PENDING';
 let editingBetId = null;
 let currentUser = null;      // { id, username, displayName, avatar, role }
@@ -983,7 +954,7 @@ function demoFallback(fn, args){
   if (fn==='getUsers') return [{id:1, username:'admin', displayName:'ແອັດມິນ (Demo)', avatar:'', role:'admin', createdAt:new Date()}];
   if (fn==='saveUser' || fn==='deleteUser' || fn==='uploadAvatar' || fn==='uploadAnimalIcon') return {ok:true, url:''};
   if (fn==='getAll') return {
-    config: defaultConfigJs(), animals: demoAnimals, bets: demoBets, rounds: [], openRounds: [],
+    config: defaultConfigJs(), animals: demoAnimals, bets: demoBets, rounds: [],
     summary: {income:120000, expense:10000, net:110000, winCount:1, loseCount:1, pendingCount:0, byDay:[{day:'2026-09-08', income:120000, expense:10000}], byAnimal:[{animal:'crab',count:1},{animal:'fish',count:1}]}
   };
   if (fn==='getConfig') return {...defaultConfigJs()};
@@ -991,8 +962,6 @@ function demoFallback(fn, args){
   if (fn==='resetAnimalIcons') return { ok:true, animals: demoAnimals };
   if (fn==='getBets') return demoBets;
   if (fn==='getRounds') return [];
-  if (fn==='getOpenRounds') return [];
-  if (fn==='openRound') return { ok:true, openRounds: [] };
   if (fn==='getSummary') return {income:120000, expense:10000, net:110000, winCount:1, loseCount:1, pendingCount:0, byDay:[{day:'2026-09-08', income:120000, expense:10000}], byAnimal:[]};
   if (fn==='uploadLogo') return {ok:true, url:''};
   if (fn==='getPrediction') return {
@@ -1052,7 +1021,6 @@ async function bootstrap(){
       ANIMALS = Array.isArray(cache.animals) ? cache.animals : [];
       BETS    = Array.isArray(cache.bets)    ? cache.bets    : [];
       ROUNDS  = Array.isArray(cache.rounds)  ? cache.rounds  : [];
-      OPEN_ROUNDS = Array.isArray(cache.openRounds) ? cache.openRounds : [];
       const summary = cache.summary || emptySummary();
 
       applyTheme();
@@ -1161,7 +1129,7 @@ async function doLogin(){
 function doLogout(){
   if (currentUser) clearCache_(currentUser.username);
   currentUser = null;
-  BETS = []; ROUNDS = []; OPEN_ROUNDS = [];
+  BETS = []; ROUNDS = [];
   try { localStorage.removeItem(SESSION_KEY); } catch(e){}
   document.getElementById('app').style.display = 'none';
   document.getElementById('loginScreen').classList.remove('hide');
@@ -1213,7 +1181,6 @@ async function init(){
       { key:'animals', fn:'getAnimals' },
       { key:'bets',    fn:'getBets', args:[{ username: scopeCtx.isAdmin ? null : scopeCtx.username }] },
       { key:'rounds',  fn:'getRounds' },
-      { key:'openRounds', fn:'getOpenRounds' },
       { key:'summary', fn:'getSummary', args:[{ username: scopeCtx.isAdmin ? null : scopeCtx.username }] }
     ];
     const results = await Promise.allSettled(jobs.map(j => callServer(j.fn, ...(j.args||[]))));
@@ -1224,11 +1191,10 @@ async function init(){
     });
   }
 
-  CONFIG      = (data && data.config)  || defaultConfigJs();
-  ANIMALS     = Array.isArray(data && data.animals) ? data.animals : [];
-  BETS        = Array.isArray(data && data.bets)    ? data.bets    : [];
-  ROUNDS      = Array.isArray(data && data.rounds)  ? data.rounds  : [];
-  OPEN_ROUNDS = Array.isArray(data && data.openRounds) ? data.openRounds : [];
+  CONFIG  = (data && data.config)  || defaultConfigJs();
+  ANIMALS = Array.isArray(data && data.animals) ? data.animals : [];
+  BETS    = Array.isArray(data && data.bets)    ? data.bets    : [];
+  ROUNDS  = Array.isArray(data && data.rounds)  ? data.rounds  : [];
   const summary = (data && data.summary) || emptySummary();
 
   document.getElementById('sb-admin-link').style.display = currentUser.role === 'admin' ? 'flex' : 'none';
@@ -1255,7 +1221,7 @@ async function init(){
   // ✅ ບັນທຶກ cache ໄວ້ ເພື່ອໃຫ້ຄັ້ງໜ້າເປີດແອັບ ສະແດງໜ້າຫຼັກໄດ້ທັນທີ
   //    (ບັນທຶກສະເພາະຕອນເຊື່ອມ Backend ຈິງໄດ້ — ບໍ່ບັນທຶກຂໍ້ມູນ Demo)
   if (IS_LIVE) {
-    saveCache_(currentUser.username, { config: CONFIG, animals: ANIMALS, bets: BETS, rounds: ROUNDS, openRounds: OPEN_ROUNDS, summary: summary });
+    saveCache_(currentUser.username, { config: CONFIG, animals: ANIMALS, bets: BETS, rounds: ROUNDS, summary: summary });
   }
 
   if (!window.__pollingStarted) {
@@ -1280,11 +1246,10 @@ async function refreshData(){
     const scopeCtx = { username: currentUser.username, isAdmin: currentUser.role === 'admin' };
     const data = await callServer('getAll', scopeCtx);
     if (data && !data.error) {
-      CONFIG      = data.config || CONFIG;
-      ANIMALS     = Array.isArray(data.animals) ? data.animals : ANIMALS;
-      BETS        = Array.isArray(data.bets)    ? data.bets    : BETS;
-      ROUNDS      = Array.isArray(data.rounds)  ? data.rounds  : ROUNDS;
-      OPEN_ROUNDS = Array.isArray(data.openRounds) ? data.openRounds : OPEN_ROUNDS;
+      CONFIG  = data.config || CONFIG;
+      ANIMALS = Array.isArray(data.animals) ? data.animals : ANIMALS;
+      BETS    = Array.isArray(data.bets)    ? data.bets    : BETS;
+      ROUNDS  = Array.isArray(data.rounds)  ? data.rounds  : ROUNDS;
       const summary = data.summary || emptySummary();
       safe('theme', () => applyTheme());
       safe('brand', () => renderBrand());
@@ -1293,8 +1258,6 @@ async function refreshData(){
       safe('stats', () => renderStats(summary));
       safe('profile', () => renderProfile(summary));
       safe('rounds', () => renderRoundsList());
-      safe('open-rounds', () => renderOpenRoundsList());
-      safe('bet-round-select', () => renderBetRoundSelect());
       safe('history-rounds', () => { if (historyFilter === 'ROUNDS') renderHistoryRoundsList(); });
       safe('animal-pickers', () => renderAnimalPickers());
       hideErrorBanner();
@@ -1302,7 +1265,7 @@ async function refreshData(){
 
       // ✅ ອັບເດດ cache ໃຫ້ທັນສະໄໝທຸກຄັ້ງທີ່ດຶງຂໍ້ມູນສຳເລັດ
       if (IS_LIVE) {
-        saveCache_(currentUser.username, { config: CONFIG, animals: ANIMALS, bets: BETS, rounds: ROUNDS, openRounds: OPEN_ROUNDS, summary: summary });
+        saveCache_(currentUser.username, { config: CONFIG, animals: ANIMALS, bets: BETS, rounds: ROUNDS, summary: summary });
       }
     }
   } catch (err) {
@@ -1870,43 +1833,6 @@ function getRoundSelectedAnimals(){ return rdSequence.slice(); }
 function resetRoundAnimalPicker(){ rdSequence = []; renderRoundAnimalPicker(); }
 
 /* =================================================================
-   ✅ ໃໝ່: BET ROUND SELECT — dropdown ຂອງງວດທີ່ "ເປີດຮັບ" ຢູ່
-   (ດຶງມາຈາກ OPEN_ROUNDS ເຊິ່ງໄດ້ຈາກ getOpenRounds ຝັ່ງ backend).
-   ຄົນແທງເລືອກຈາກລາຍການນີ້ແທນທີ່ຈະພິມເລກງວດເອງ — ຕັດບັນຫາ "ພິມຜິດ/ຜູກ
-   ກັບງວດເກົ່າທີ່ຮູ້ຜົນແລ້ວ" ໄດ້ 100%. ຖ້າບໍ່ມີງວດເປີດຮັບຢູ່ເລີຍ ຈະສະແດງ
-   ຄຳເຕືອນໃຫ້ພິມເອງແທນ (ໂໝດ "ພິມເລກງວດເອງ" ຈະຖືກເປີດໃຫ້ອັດຕະໂນມັດ).
-================================================================= */
-function renderBetRoundSelect(selectedRoundId){
-  const sel = document.getElementById('bet-roundId');
-  if (!sel) return;
-  if (!Array.isArray(OPEN_ROUNDS) || OPEN_ROUNDS.length === 0) {
-    sel.innerHTML = `<option value="">— ບໍ່ມີງວດເປີດຮັບຢູ່ —</option>`;
-    return;
-  }
-  sel.innerHTML = OPEN_ROUNDS.map(r => {
-    const label = 'ງວດທີ ' + r.RoundID + (r.DateTime ? ' (' + formatDisplayDateTime(r.DateTime) + ')' : '');
-    return `<option value="${escAttr(r.RoundID)}">${escHtml(label)}</option>`;
-  }).join('');
-  if (selectedRoundId != null) sel.value = String(selectedRoundId);
-}
-
-/** ສະຫຼັບລະຫວ່າງໂໝດ "ເລືອກຈາກລາຍການ" ແລະ "ພິມເອງ" ໃນ modal ແທງ */
-function updateBetRoundIdMode(){
-  const manual = document.getElementById('bet-roundId-manual').checked;
-  document.getElementById('bet-roundId').style.display = manual ? 'none' : 'block';
-  document.getElementById('bet-roundId-text').style.display = manual ? 'block' : 'none';
-}
-document.getElementById('bet-roundId-manual').addEventListener('change', updateBetRoundIdMode);
-
-/** ຄືນຄ່າ "ເລກງວດ" ທີ່ຄົນແທງເລືອກ/ພິມ ຢູ່ Modal ແທງ ໃນປັດຈຸບັນ */
-function getBetRoundIdValue(){
-  const manual = document.getElementById('bet-roundId-manual').checked;
-  return manual
-    ? document.getElementById('bet-roundId-text').value.trim()
-    : document.getElementById('bet-roundId').value.trim();
-}
-
-/* =================================================================
    BET MODAL
 ================================================================= */
 function openBetModal(id){
@@ -1918,28 +1844,12 @@ function openBetModal(id){
     return;
   }
   document.getElementById('betModalTitle').textContent = bet ? 'ແກ້ໄຂລາຍການ' : 'ບັນທຶກລາຍການແທງໃໝ່';
-
-  // ✅ ໃໝ່: ຕັ້ງຄ່າຊ່ອງເລກງວດ — ຖ້າແກ້ໄຂລາຍການເກົ່າ ຫຼື ບໍ່ມີງວດເປີດຮັບເລີຍ
-  //    ໃຫ້ໃຊ້ໂໝດ "ພິມເອງ"; ຖ້າສ້າງລາຍການໃໝ່ ແລະ ມີງວດເປີດຮັບຢູ່ ໃຫ້ໃຊ້ dropdown
-  renderBetRoundSelect(bet ? bet.RoundID : null);
-  const hasOpenRounds = Array.isArray(OPEN_ROUNDS) && OPEN_ROUNDS.length > 0;
-  const forceManual = !!bet || !hasOpenRounds;
-  document.getElementById('bet-roundId-manual').checked = forceManual;
-  document.getElementById('bet-roundId-manual').disabled = !hasOpenRounds && !bet; // ບໍ່ມີງວດເປີດ+ບໍ່ແມ່ນແກ້ໄຂ → ບັງຄັບພິມເອງ
-  document.getElementById('bet-roundId-text').value = bet ? bet.RoundID : '';
-  updateBetRoundIdMode();
-  if (!bet && hasOpenRounds) {
-    // ໂດຍຄ່າເລີ່ມຕົ້ນ ເລືອກງວດທຳອິດ (ໃກ້ອອກຜົນທີ່ສຸດ) ໃຫ້ອັດຕະໂນມັດ
-    document.getElementById('bet-roundId').value = OPEN_ROUNDS[0].RoundID;
-  }
-
+  document.getElementById('bet-roundId').value = bet ? bet.RoundID : suggestedNextRoundId();
   document.getElementById('bet-roundDateTime').value = bet ? displayToIso(bet.RoundDateTime) : isoLocalFromDate(getSuggestedRoundDateTime());
   const hintEl = document.getElementById('bet-round-hint');
   if (hintEl) {
     if (bet) {
       hintEl.textContent = '';
-    } else if (!hasOpenRounds) {
-      hintEl.textContent = '⚠️ ບໍ່ມີງວດເປີດຮັບຢູ່ໃນຕອນນີ້ — ກະລຸນາພິມເລກງວດເອງ ຫຼື ລໍໃຫ້ admin ເປີດງວດໃໝ່';
     } else {
        const num = getActiveOrUpcomingRoundNumber();
        const sched = ROUND_SCHEDULE.find(r=>r.round===num);
@@ -1976,13 +1886,12 @@ document.getElementById('cancelBetBtn').addEventListener('click', closeBetModal)
 document.getElementById('saveBetBtn').addEventListener('click', async ()=>{
   const animals = getSelectedAnimals('bet-animal-picker');
   if (animals.length === 0) { showToast('ກະລຸນາເລືອກສັດຢ່າງໜ້ອຍ 1 ໂຕ ❗'); return; }
-  const roundId = getBetRoundIdValue();
+  const roundId = document.getElementById('bet-roundId').value.trim();
   const stake = document.getElementById('bet-stake').value;
-  if (!roundId) { showToast('ກະລຸນາເລືອກ ຫຼື ໃສ່ເລກງວດ ❗'); return; }
+  if (!roundId) { showToast('ກະລຸນາໃສ່ເລກງວດ ❗'); return; }
   if (!stake || Number(stake) <= 0) { showToast('ກະລຸນາໃສ່ຈຳນວນເງິນແທງ ❗'); return; }
 
-  // ✅ ກວດກ່ອນ ວ່າງວດນີ້ອອກຜົນແລ້ວບໍ່ (ເກີດຂຶ້ນໄດ້ສະເພາະຕອນພິມເອງ ເພາະ
-  //    dropdown ຄັດເອົາສະເພາະງວດເປີດຮັບໃຫ້ແລ້ວ) — ຕ້ອງເຮັດກ່ອນສົ່ງ payload
+  // ✅ ກວດກ່ອນ ວ່າງວດນີ້ອອກຜົນແລ້ວບໍ່ — ຕ້ອງເຮັດກ່ອນສົ່ງ, ບໍ່ແມ່ນຫຼັງສ້າງ payload
   const existingRound = (ROUNDS||[]).find(r => String(r.RoundID) === roundId
     && r.Animal1 && r.Animal2 && r.Animal3);
   // ຖ້າແກ້ໄຂລາຍການເກົ່າ (editingBetId) ບໍ່ຕ້ອງຖາມ — ຖາມສະເພາະຕອນສ້າງລາຍການໃໝ່
@@ -2059,7 +1968,6 @@ function switchAdminTab(atab){
   const saveWrap = document.getElementById('atab-brand-save-wrap');
   if (saveWrap) saveWrap.style.display = (atab==='users') ? 'none' : 'block';
   if (atab === 'users') loadUsersList();
-  if (atab === 'rounds') renderOpenRoundsList();
   updatePillFade();
 }
 
@@ -2138,7 +2046,6 @@ function renderAdminForms(){
   renderAnimalConfigList();
   renderComboRatesList();
   renderRoundsList();
-  renderOpenRoundsList();
   loadUsersList();
 }
 
@@ -2245,71 +2152,6 @@ document.getElementById('resetIconsBtn').addEventListener('click', async ()=>{
   }
 });
 
-/* =================================================================
-   ✅ ໃໝ່: ADMIN — ເປີດງວດລ່ວງໜ້າ (openRound / getOpenRounds)
-================================================================= */
-function renderOpenRoundsList(){
-  const el = document.getElementById('openRoundsList');
-  if (!el) return;
-  if (!Array.isArray(OPEN_ROUNDS) || OPEN_ROUNDS.length === 0) {
-    el.innerHTML = `<div class="hint">ຍັງບໍ່ມີງວດເປີດຮັບຢູ່ — ໃສ່ເລກງວດ+ວັນທີ ແລ້ວກົດ "ເປີດຮັບແທງງວດນີ້" ຂ້າງເທິງ</div>`;
-    return;
-  }
-  el.innerHTML = OPEN_ROUNDS.map(r => `
-    <div class="open-round-item" data-round="${escAttr(r.RoundID)}">
-      <div class="or-mid">
-        <div class="or-id">ງວດທີ ${escHtml(r.RoundID)} <span class="round-badge OPEN">ເປີດຮັບ</span></div>
-        <div class="or-dt">${escHtml(formatDisplayDateTime(r.DateTime))}</div>
-      </div>
-      <span class="or-fill" data-round="${escAttr(r.RoundID)}" data-dt="${escAttr(r.DateTime||'')}">✍️ ໃສ່ຜົນ</span>
-      <span class="or-del" data-round="${escAttr(r.RoundID)}" title="ຍົກເລີກງວດນີ້">🗑️</span>
-    </div>`).join('');
-
-  el.querySelectorAll('.or-fill').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      document.getElementById('rd-id').value = btn.dataset.round;
-      document.getElementById('rd-datetime').value = displayToIso(btn.dataset.dt);
-      resetRoundAnimalPicker();
-      showToast('ເລືອກງວດທີ ' + btn.dataset.round + ' ແລ້ວ — ເລືອກຜົນ 3 ອັນດັບຂ້າງລຸ່ມ ແລ້ວກົດ "ບັນທຶກຜົນງວດ"');
-      document.getElementById('atab-rounds').scrollIntoView({behavior:'smooth', block:'nearest'});
-    });
-  });
-  el.querySelectorAll('.or-del').forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
-      if (!confirm('ຍົກເລີກງວດທີ ' + btn.dataset.round + ' ນີ້ບໍ່? (ຄົນແທງທີ່ເລືອກງວດນີ້ໄວ້ແລ້ວຈະບໍ່ໄດ້ຮັບຜົນກະທົບ ແຕ່ຈະບໍ່ເຫັນງວດນີ້ໃນ dropdown ອີກ)')) return;
-      try {
-        await callServer('deleteRound', btn.dataset.round);
-        OPEN_ROUNDS = await callServer('getOpenRounds');
-        renderOpenRoundsList();
-        renderBetRoundSelect();
-        showToast('ຍົກເລີກງວດແລ້ວ 🗑️');
-      } catch (err) {
-        showToast('ຍົກເລີກລົ້ມເຫຼວ: ' + err.message);
-      }
-    });
-  });
-}
-
-document.getElementById('openRoundBtn').addEventListener('click', async ()=>{
-  const roundId = document.getElementById('or-id').value.trim();
-  const dateTimeVal = document.getElementById('or-datetime').value;
-  if (!roundId) { showToast('ກະລຸນາໃສ່ເລກງວດ ❗'); return; }
-  const payload = { roundId, dateTime: isoToDisplay(dateTimeVal) };
-  try {
-    const res = await callServer('openRound', payload);
-    if (res && res.error) { showToast('ບໍ່ສຳເລັດ: ' + res.error); return; }
-    OPEN_ROUNDS = (res && Array.isArray(res.openRounds)) ? res.openRounds : await callServer('getOpenRounds');
-    renderOpenRoundsList();
-    renderBetRoundSelect();
-    document.getElementById('or-id').value = '';
-    document.getElementById('or-datetime').value = '';
-    showToast('ເປີດຮັບແທງງວດທີ ' + roundId + ' ແລ້ວ ✅ — ຄົນແທງຈະເຫັນໃນ dropdown ທັນທີ');
-    await refreshData();
-  } catch (err) {
-    showToast('ເປີດງວດລົ້ມເຫຼວ: ' + err.message);
-  }
-});
-
 function renderRoundsList(){
   const el = document.getElementById('roundsList');
   const rounds = Array.isArray(ROUNDS) ? ROUNDS : [];
@@ -2331,7 +2173,7 @@ function renderRoundsList(){
 function renderHistoryRoundsList(){
   const el = document.getElementById('historyRoundsList');
   if (!el) return;
-  const rounds = (Array.isArray(ROUNDS) ? ROUNDS : []).filter(r => r.Animal1 && r.Animal2 && r.Animal3);
+  const rounds = Array.isArray(ROUNDS) ? ROUNDS : [];
   el.innerHTML = rounds.length ? rounds.map(r=>`
     <div class="round-card" style="cursor:default;">
       <div class="top">
@@ -2392,10 +2234,7 @@ document.getElementById('saveRoundBtn').addEventListener('click', async ()=>{
     const res = await callServer('saveRound', payload);
     if (res && res.error) { showToast('ບໍ່ສຳເລັດ: ' + res.error); return; }
     ROUNDS = await callServer('getRounds');
-    OPEN_ROUNDS = await callServer('getOpenRounds');
     renderRoundsList();
-    renderOpenRoundsList();
-    renderBetRoundSelect();
     document.getElementById('rd-id').value = '';
     document.getElementById('rd-datetime').value = '';
     resetRoundAnimalPicker();
