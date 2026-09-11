@@ -798,6 +798,15 @@ function getActiveOrUpcomingRoundNumber(){
   return status.round;
 }
 
+// ເພີ່ມຟັງຊັນນີ້ໄວ້ໃກ້ໆ getSuggestedRoundDateTime()
+function suggestedNextRoundId(){
+  if (!Array.isArray(ROUNDS) || ROUNDS.length === 0) return '';
+  const lastId = String(ROUNDS[0].RoundID || '').trim();
+  const n = Number(lastId);
+  if (!isFinite(n)) return '';           // ຖ້າແປງເປັນເລກບໍ່ໄດ້ ໃຫ້ປ່ອຍວ່າງ ບັງຄັບໃຫ້ພິມເອງ
+  return String(n + 1);                  // ງວດຫຼ້າສຸດ + 1 = ງວດຕໍ່ໄປ (ຍັງບໍ່ຮູ້ຜົນ)
+}
+
 /** ຄາດເວລາອອກຜົນຂອງງວດທີ່ຄວນຜູກນຳ ນຳໄປໃສ່ໃນຊ່ອງ "ວັນທີ-ເວລາງວດ" ອັດຕະໂນມັດ */
 function getSuggestedRoundDateTime(){
   const status = getRoundStatus();
@@ -1835,7 +1844,7 @@ function openBetModal(id){
     return;
   }
   document.getElementById('betModalTitle').textContent = bet ? 'ແກ້ໄຂລາຍການ' : 'ບັນທຶກລາຍການແທງໃໝ່';
-  document.getElementById('bet-roundId').value = bet ? bet.RoundID : ((ROUNDS[0] && ROUNDS[0].RoundID) || '');
+  document.getElementById('bet-roundId').value = bet ? bet.RoundID : suggestedNextRoundId();
   document.getElementById('bet-roundDateTime').value = bet ? displayToIso(bet.RoundDateTime) : isoLocalFromDate(getSuggestedRoundDateTime());
   const hintEl = document.getElementById('bet-round-hint');
   if (hintEl) {
@@ -1882,6 +1891,18 @@ document.getElementById('saveBetBtn').addEventListener('click', async ()=>{
   if (!roundId) { showToast('ກະລຸນາໃສ່ເລກງວດ ❗'); return; }
   if (!stake || Number(stake) <= 0) { showToast('ກະລຸນາໃສ່ຈຳນວນເງິນແທງ ❗'); return; }
 
+  // ✅ ກວດກ່ອນ ວ່າງວດນີ້ອອກຜົນແລ້ວບໍ່ — ຕ້ອງເຮັດກ່ອນສົ່ງ, ບໍ່ແມ່ນຫຼັງສ້າງ payload
+  const existingRound = (ROUNDS||[]).find(r => String(r.RoundID) === roundId
+    && r.Animal1 && r.Animal2 && r.Animal3);
+  // ຖ້າແກ້ໄຂລາຍການເກົ່າ (editingBetId) ບໍ່ຕ້ອງຖາມ — ຖາມສະເພາະຕອນສ້າງລາຍການໃໝ່
+  let backdated = false;
+  if (existingRound && !editingBetId) {
+    if (!confirm(`⚠️ ງວດທີ ${roundId} ນີ້ອອກຜົນແລ້ວ! ຕ້ອງການແທງຍ້ອນຫຼັງແທ້ບໍ່?`)) {
+      return; // ຢຸດ, ໃຫ້ຄົນແທງໄປແກ້ເລກງວດໃໝ່
+    }
+    backdated = true;
+  }
+
   const payload = {
     id: editingBetId,
     roundId,
@@ -1892,8 +1913,10 @@ document.getElementById('saveBetBtn').addEventListener('click', async ()=>{
     note: document.getElementById('bet-note').value,
     status: currentStatus,
     username: currentUser.username,
-    isAdmin: currentUser.role === 'admin'
+    isAdmin: currentUser.role === 'admin',
+    backdated: backdated   // ✅ ໃສ່ທຸງນີ້ໃຫ້ Code.gs ຮູ້ວ່າຕັ້ງໃຈແທງຍ້ອນຫຼັງ
   };
+
   try {
     const res = editingBetId ? await callServer('updateBet', payload) : await callServer('addBet', payload);
     if (res && res.error) { showToast('ບໍ່ສຳເລັດ: ' + res.error); return; }
