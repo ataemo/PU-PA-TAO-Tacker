@@ -400,6 +400,9 @@
         </div>
         <div class="hero-num" id="stat-net"><span class="skel wide"></span></div>
         <div class="hero-sub" id="lbl-net">ກຳໄລ/ຂາດທຶນ</div>
+        <div class="hero-pill" id="roundCountdown" style="display:inline-flex; align-items:center; gap:6px; margin-bottom:14px; position:relative; z-index:1;">
+          ⏱ <span id="roundCountdownText">ກຳລັງໂຫຼດ...</span>
+        </div>
         <div class="hero-chips">
           <div class="hero-chip"><div class="hc-label" id="lbl-income">ລາຍຮັບ</div><div class="hc-val" id="stat-income"><span class="skel"></span></div></div>
           <div class="hero-chip"><div class="hc-label" id="lbl-expense">ລາຍຈ່າຍ</div><div class="hc-val" id="stat-expense"><span class="skel"></span></div></div>
@@ -532,6 +535,10 @@
       </div>
 
       <div id="atab-rounds" style="display:none;">
+        <div id="adminRoundStatusBox" style="border-radius:16px; padding:14px 16px; margin-bottom:16px; font-weight:700; font-size:13.5px; display:flex; align-items:center; gap:8px;">
+          <span id="adminRoundStatusIcon">📢</span>
+          <span id="adminRoundStatusText">ກຳລັງໂຫຼດ...</span>
+        </div>
         <div class="field"><label>ເລກງວດ</label><input type="text" id="rd-id" placeholder="36260150"></div>
         <div class="field"><label>ວັນທີ-ເວລາງວດ</label><input type="datetime-local" id="rd-datetime"></div>
         <label style="font-size:12.5px; color:var(--text-dim); font-weight:600;">ຜົນອອກ 3 ອັນດັບ — ກົດເລືອກສັດຕາມລຳດັບ (ອັນດັບ 1 → 3), ສັດຊ້ຳກັນໄດ້, ໃຊ້ລູກສອນ/✖️ ໃນຊ່ອງອັນດັບເພື່ອສະຫຼັບ ຫຼື ລຶບ</label>
@@ -574,6 +581,7 @@
       <div class="field"><label>ເລກງວດ</label><input type="text" id="bet-roundId" placeholder="36260150"></div>
       <div class="field"><label>ວັນທີ-ເວລາງວດ</label><input type="datetime-local" id="bet-roundDateTime"></div>
     </div>
+    <div class="hint" id="bet-round-hint" style="margin:-8px 0 14px;"></div>
     <div class="field">
       <label>ສັດທີ່ແທງ</label>
       <div class="animal-picker" id="bet-animal-picker"></div>
@@ -704,6 +712,122 @@ function animalIconHtml(id){
   return iconInnerHtml(a ? a.Icon : '');
 }
 function escAttr(s){ return String(s == null ? '' : s).replace(/"/g,'&quot;'); }
+
+/* =================================================================
+   ຕາຕະລາງງວດປະຈຳວັນ (ຄົງທີ່) — ແກ້ເວລາຕົງນີ້ໄດ້ຖ້າຕາຕະລາງປ່ຽນໃນອະນາຄົດ
+================================================================= */
+const ROUND_SCHEDULE = [
+  { round:1, buyStart:'08:00', buyEnd:'12:05', resultTime:'12:12' },
+  { round:2, buyStart:'12:20', buyEnd:'13:05', resultTime:'13:12' },
+  { round:3, buyStart:'13:20', buyEnd:'14:05', resultTime:'14:12' },
+  { round:4, buyStart:'14:20', buyEnd:'16:05', resultTime:'16:12' },
+  { round:5, buyStart:'16:20', buyEnd:'17:05', resultTime:'17:13' },
+  { round:6, buyStart:'17:20', buyEnd:'18:05', resultTime:'18:12' },
+  { round:7, buyStart:'18:20', buyEnd:'20:05', resultTime:'20:12' }
+];
+
+function timeStrToMinutes(t){ const [h,m]=t.split(':').map(Number); return h*60+m; }
+
+/** ຄິດໄລ່ວ່າຕອນນີ້ຢູ່ຊ່ວງໃດ: ກຳລັງເປີດຮັບ / ປິດແລ້ວລໍຜົນ / ຊ່ວງພັກລະຫວ່າງງວດ / ວັນນີ້ອອກຄົບແລ້ວ */
+function getRoundStatus(){
+  const now = new Date();
+  const nowMin = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
+
+  for (let i=0;i<ROUND_SCHEDULE.length;i++){
+    const r = ROUND_SCHEDULE[i];
+    const buyStart = timeStrToMinutes(r.buyStart);
+    const buyEnd = timeStrToMinutes(r.buyEnd);
+    const resultTime = timeStrToMinutes(r.resultTime);
+    const nextBuyStart = (i+1 < ROUND_SCHEDULE.length) ? timeStrToMinutes(ROUND_SCHEDULE[i+1].buyStart) : null;
+
+    if (nowMin < buyStart)
+      return { phase:'BEFORE_OPEN', round:r.round, targetMin:buyStart, label:`ງວດທີ ${r.round} ຈະເປີດຮັບຊື້ອີກ` };
+    if (nowMin >= buyStart && nowMin < buyEnd)
+      return { phase:'OPEN', round:r.round, targetMin:buyEnd, label:`ງວດທີ ${r.round} • ປິດຮັບຊື້ອີກ` };
+    if (nowMin >= buyEnd && nowMin < resultTime)
+      return { phase:'WAIT_RESULT', round:r.round, targetMin:resultTime, label:`ງວດທີ ${r.round} ປິດຮັບແລ້ວ • ລໍຖ້າຜົນອອກອີກ` };
+    if (nextBuyStart !== null && nowMin >= resultTime && nowMin < nextBuyStart)
+      return { phase:'GAP', round:r.round, nextRound:r.round+1, targetMin:nextBuyStart, label:`ຜົນງວດທີ ${r.round} ອອກແລ້ວ • ງວດທີ ${r.round+1} ຈະເປີດຮັບອີກ` };
+  }
+  // ຫຼັງງວດສຸດທ້າຍຂອງມື້ (ຫຼັງ 20:12) → ລໍງວດ 1 ຂອງມື້ອື່ນ
+  return { phase:'DONE', round:null, targetMin: timeStrToMinutes(ROUND_SCHEDULE[0].buyStart) + 1440, label:'ວັນນີ້ອອກຄົບທຸກງວດແລ້ວ • ງວດ 1 ຈະເປີດຮັບອີກ' };
+}
+
+/** ຄືນຄ່າ "ເລກງວດ" ທີ່ຄວນຜູກການແທງໃໝ່ດ້ວຍ (ຮັບຊື້ຢູ່ ຫຼື ຈະເປີດຮັບອັນຕໍ່ໄປ) */
+function getActiveOrUpcomingRoundNumber(){
+  const status = getRoundStatus();
+  if (status.phase === 'GAP') return status.nextRound;
+  if (status.phase === 'DONE') return 1;
+  return status.round;
+}
+
+/** ຄາດເວລາອອກຜົນຂອງງວດທີ່ຄວນຜູກນຳ ນຳໄປໃສ່ໃນຊ່ອງ "ວັນທີ-ເວລາງວດ" ອັດຕະໂນມັດ */
+function getSuggestedRoundDateTime(){
+  const status = getRoundStatus();
+  const num = getActiveOrUpcomingRoundNumber();
+  const sched = ROUND_SCHEDULE.find(r=>r.round===num);
+  const d = new Date();
+  if (!sched) return d;
+  if (status.phase === 'DONE') d.setDate(d.getDate()+1);
+  const [hh,mm] = sched.resultTime.split(':').map(Number);
+  d.setHours(hh, mm, 0, 0);
+  return d;
+}
+
+function tickRoundCountdown(){
+  const textEl = document.getElementById('roundCountdownText');
+  const pillEl = document.getElementById('roundCountdown');
+  if (!textEl || !pillEl) return;
+  const status = getRoundStatus();
+  const now = new Date();
+  const nowSec = now.getHours()*3600 + now.getMinutes()*60 + now.getSeconds();
+  let diff = (status.targetMin*60) - nowSec;
+  if (diff < 0) diff += 24*3600;
+  const hh = Math.floor(diff/3600), mm = Math.floor((diff%3600)/60), ss = diff%60;
+  textEl.textContent = status.label + ' ' + pad2(hh)+':'+pad2(mm)+':'+pad2(ss);
+  const colors = { BEFORE_OPEN:'rgba(255,255,255,.22)', OPEN:'rgba(47,184,139,.4)', WAIT_RESULT:'rgba(255,169,77,.4)', GAP:'rgba(255,255,255,.22)', DONE:'rgba(255,255,255,.15)' };
+  pillEl.style.background = colors[status.phase] || 'rgba(255,255,255,.22)';
+}
+
+/** ຂໍ້ຄວາມສະເພາະສຳລັບ admin > ຜົນງວດ — ບອກໂດຍກົງວ່າ "ຄວນອອກຜົນງວດໃດດຽວນີ້" */
+function tickAdminRoundStatus(){
+  const box = document.getElementById('adminRoundStatusBox');
+  const textEl = document.getElementById('adminRoundStatusText');
+  const iconEl = document.getElementById('adminRoundStatusIcon');
+  if (!box || !textEl || !iconEl) return;
+
+  const status = getRoundStatus();
+  const now = new Date();
+  const nowSec = now.getHours()*3600 + now.getMinutes()*60 + now.getSeconds();
+  let diff = (status.targetMin*60) - nowSec;
+  if (diff < 0) diff += 24*3600;
+  const hh = Math.floor(diff/3600), mm = Math.floor((diff%3600)/60), ss = diff%60;
+  const countdownTxt = pad2(hh)+':'+pad2(mm)+':'+pad2(ss);
+
+  let msg = '', icon = '📢', bg = 'var(--primary-soft)', color = 'var(--primary)';
+
+  if (status.phase === 'WAIT_RESULT') {
+    msg = `🔴 ຄວນອອກຜົນງວດທີ ${status.round} ດຽວນີ້! (ປິດຮັບຊື້ແລ້ວ ‧ ຄາດປະກາດຜົນອີກ ${countdownTxt})`;
+    icon = '🔴'; bg = 'var(--lose-soft)'; color = 'var(--lose)';
+  } else if (status.phase === 'OPEN') {
+    msg = `ງວດທີ ${status.round} ກຳລັງເປີດຮັບຊື້ຢູ່ ‧ ຍັງບໍ່ຄວນອອກຜົນ (ປິດຮັບອີກ ${countdownTxt})`;
+    icon = '🟢'; bg = 'var(--win-soft)'; color = 'var(--win)';
+  } else if (status.phase === 'GAP') {
+    msg = `✅ ອອກຜົນງວດທີ ${status.round} ແລ້ວ ‧ ງວດຕໍ່ໄປ (ທີ ${status.nextRound}) ຈະເປີດຮັບອີກ ${countdownTxt}`;
+    icon = '✅'; bg = 'var(--primary-soft)'; color = 'var(--primary)';
+  } else if (status.phase === 'BEFORE_OPEN') {
+    msg = `ງວດທີ ${status.round} ຍັງບໍ່ເປີດຮັບຊື້ ‧ ຈະເປີດອີກ ${countdownTxt}`;
+    icon = '⏳'; bg = 'var(--accent-soft)'; color = 'var(--accent)';
+  } else {
+    msg = `ວັນນີ້ອອກຄົບທຸກງວດແລ້ວ ‧ ງວດ 1 ຂອງມື້ອື່ນຈະເປີດອີກ ${countdownTxt}`;
+    icon = '🌙'; bg = 'var(--primary-soft)'; color = 'var(--primary)';
+  }
+
+  textEl.textContent = msg;
+  iconEl.textContent = icon;
+  box.style.background = bg;
+  box.style.color = color;
+}
 
 /* =================================================================
    STATE
@@ -1523,7 +1647,17 @@ function openBetModal(id){
   }
   document.getElementById('betModalTitle').textContent = bet ? 'ແກ້ໄຂລາຍການ' : 'ບັນທຶກລາຍການແທງໃໝ່';
   document.getElementById('bet-roundId').value = bet ? bet.RoundID : ((ROUNDS[0] && ROUNDS[0].RoundID) || '');
-  document.getElementById('bet-roundDateTime').value = bet ? displayToIso(bet.RoundDateTime) : isoLocalFromDate(new Date());
+  document.getElementById('bet-roundDateTime').value = bet ? displayToIso(bet.RoundDateTime) : isoLocalFromDate(getSuggestedRoundDateTime());
+  const hintEl = document.getElementById('bet-round-hint');
+  if (hintEl) {
+    if (bet) {
+      hintEl.textContent = '';
+    } else {
+       const num = getActiveOrUpcomingRoundNumber();
+       const sched = ROUND_SCHEDULE.find(r=>r.round===num);
+       hintEl.textContent = sched ? `💡 ຕອນນີ້ແມ່ນຊ່ວງງວດທີ ${num} — ຄາດວ່າຈະປະກາດຜົນເວລາ ${sched.resultTime} ນ.` : '';
+    }
+  }
   document.getElementById('bet-stake').value = bet ? bet.Stake : '';
   document.getElementById('bet-payout').value = bet ? bet.Payout : '';
   document.getElementById('bet-note').value = bet ? bet.Note : '';
@@ -2050,6 +2184,9 @@ document.getElementById('deleteUserBtn').addEventListener('click', async ()=>{
    BOOT
 ================================================================= */
 bootstrap();
+tickRoundCountdown();
+tickAdminRoundStatus();
+setInterval(()=>{ tickRoundCountdown(); tickAdminRoundStatus(); }, 1000);
 </script>
 <script>
 if ('serviceWorker' in navigator) {
