@@ -477,6 +477,12 @@
           <div class="hint" style="margin-bottom:10px;">10 ຄູ່ທີ່ອອກນຳກັນເລື້ອຍທີ່ສຸດ (ນັບຈາກຜົນງວດ 3 ອັນດັບ ບໍ່ວ່າຈະຢູ່ອັນດັບໃດ)</div>
           <div id="pairsList"></div>
         </div>
+
+        <div id="predictionUniformityBox" style="border-radius:14px; padding:10px 14px; margin-bottom:14px; font-size:12px; font-weight:700; display:none;"></div>
+        <div style="margin-bottom:14px;">
+          <span class="link" id="runBacktestBtn">🧪 ທົດສອບຄວາມແມ່ນຂອງລະບົບພະຍາກອນ (Backtest)</span>
+          <div id="backtestResultBox" style="margin-top:8px; display:none;"></div>
+        </div>
       </div>
     </div>
 
@@ -1625,6 +1631,7 @@ async function loadPrediction(){
     if (res && res.error) { showToast('ໂຫຼດພະຍາກອນບໍ່ໄດ້: ' + res.error); return; }
     PREDICTION_DATA = res;
     renderConfidenceBox(res.confidence);
+    renderUniformityBox(res.uniformity);
     renderPrediction(res);
     renderSlotTabs(res.bySlot || []);
     renderPairsList(res.topPairs || []);
@@ -1649,6 +1656,39 @@ function renderConfidenceBox(conf){
   const icon = conf.level === 'high' ? '✅' : (conf.level === 'medium' ? '⚠️' : '🔺');
   box.textContent = `${icon} ${conf.label} (ອີງຈາກ ${conf.totalRounds} ງວດ)`;
 }
+
+function renderUniformityBox(u){
+  const box = document.getElementById('predictionUniformityBox');
+  if (!box || !u) return;
+  box.style.display = 'block';
+  const isRandom = u.pValue >= 0.05;
+  box.style.background = isRandom ? 'var(--accent-soft)' : 'var(--win-soft)';
+  box.style.color = isRandom ? 'var(--accent)' : 'var(--win)';
+  box.textContent = `📐 ${isRandom ? '⚠️' : '✅'} ${u.verdict} (p-value ≈ ${u.pValue})`;
+}
+
+document.getElementById('runBacktestBtn')?.addEventListener('click', async ()=>{
+  const box = document.getElementById('backtestResultBox');
+  box.style.display = 'block';
+  box.innerHTML = '<div class="hint">ກຳລັງທົດສອບ...</div>';
+  try {
+    const res = await callServer('backtestPrediction', {});
+    if (res && res.error) { box.innerHTML = `<div class="hint">${res.error}</div>`; return; }
+    if (!res.testedRounds) { box.innerHTML = '<div class="hint">ຂໍ້ມູນຍັງບໍ່ພຽງພໍສຳລັບການທົດສອບ</div>'; return; }
+    box.innerHTML = `
+      <div class="tx-row" style="cursor:default;">
+        <div class="tx-mid"><div class="tx-title">ທາຍໂຕດຽວ (Top-1)</div><div class="tx-sub">ຖືກ ${res.top1Hits}/${res.testedRounds} ງວດ</div></div>
+        <div class="tx-right"><span class="tx-amount" style="color:${res.top1Rate > res.baselineTop1 ? 'var(--win)' : 'var(--lose)'}">${res.top1Rate}%</span><div class="tx-sub">ພື້ນຖານສຸ່ມ ${res.baselineTop1}%</div></div>
+      </div>
+      <div class="tx-row" style="cursor:default;">
+        <div class="tx-mid"><div class="tx-title">ທາຍ 3 ໂຕເທິງສຸດ (Top-3)</div><div class="tx-sub">ຖືກ ${res.top3Hits}/${res.testedRounds} ງວດ</div></div>
+        <div class="tx-right"><span class="tx-amount" style="color:${res.top3Rate > res.baselineTop3 ? 'var(--win)' : 'var(--lose)'}">${res.top3Rate}%</span><div class="tx-sub">ພື້ນຖານສຸ່ມ ${res.baselineTop3}%</div></div>
+      </div>
+      <div class="hint" style="margin-top:6px;">ຖ້າ % ໃກ້ຄຽງກັບ "ພື້ນຖານສຸ່ມ" ຫຼາຍ = ລະບົບນີ້ບໍ່ໄດ້ຊ່ວຍຫຍັງແທ້ (ຄືສຸ່ມທຳມະດາ) — ຄວນເບິ່ງເປັນຄວາມມ່ວນ ບໍ່ແມ່ນເຄື່ອງມືເພີ່ມໂອກາດຊະນະ</div>`;
+  } catch (err) {
+    box.innerHTML = `<div class="hint">ລົ້ມເຫຼວ: ${err.message}</div>`;
+  }
+});
 
 function renderPrediction(res){
   const items = (res && Array.isArray(res.items)) ? res.items : [];
