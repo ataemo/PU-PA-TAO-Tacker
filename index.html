@@ -2355,8 +2355,6 @@ document.getElementById('saveRoundBtn').addEventListener('click', async ()=>{
   try {
     const res = await callServer('saveRound', payload);
     if (res && res.error) { showToast('ບໍ່ສຳເລັດ: ' + res.error); return; }
-    ROUNDS = await callServer('getRounds');
-    renderRoundsList();
     resetRoundAnimalPicker();
     prefillRoundForm(true);
     const settled = res && res.settled;
