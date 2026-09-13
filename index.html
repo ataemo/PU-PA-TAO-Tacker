@@ -375,7 +375,7 @@
         <div class="su-role" id="sb-user-role"><span class="skel dark small"></span></div>
       </div>
     </div>
-    <div class="live-badge" style="padding:10px 4px 0;"><span class="dot" id="liveDot"></span><span id="liveLabel"><span class="skel dark small"></span></span></div>
+    <div class="live-badge" id="liveBadgeBtn" style="padding:10px 4px 0; cursor:pointer;" title="ກົດເພື່ອດຶງຂໍ້ມູນໃໝ່"><span class="dot" id="liveDot"></span><span id="liveLabel"><span class="skel dark small"></span></span> 🔄</div>
   </div>
 
   <div id="main">
@@ -978,10 +978,14 @@ function callServer(fn, arg){
   let payload = ID_ONLY_ACTIONS.indexOf(fn) !== -1 ? { id: arg } : arg;
   if (payload === undefined) payload = {};
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 20000);
+
   return fetch(API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ action: fn, payload: payload })
+    body: JSON.stringify({ action: fn, payload: payload }),
+    signal: controller.signal
   })
   .then(res => {
     if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText);
@@ -992,7 +996,8 @@ function callServer(fn, arg){
     IS_LIVE = false;
     console.error('callServer(' + fn + ') ລົ້ມເຫຼວ, ໃຊ້ຂໍ້ມູນ Demo ແທນ:', err);
     return demoFallback(fn, [payload]);
-  });
+  })
+  .finally(() => clearTimeout(timeoutId));
 }
 
 /* =================================================================
@@ -1113,7 +1118,7 @@ async function bootstrap(){
       refreshData();
       if (!window.__pollingStarted) {
         window.__pollingStarted = true;
-        setInterval(refreshData, 20000);
+        setInterval(refreshData, 45000);
       }
       return;
     }
@@ -1296,7 +1301,7 @@ async function init(){
 
   if (!window.__pollingStarted) {
     window.__pollingStarted = true;
-    setInterval(refreshData, 20000); // light polling for "realtime" sync
+    setInterval(refreshData, 45000); // light polling for "realtime" sync
   }
 }
 
@@ -2501,6 +2506,20 @@ document.getElementById('deleteUserBtn').addEventListener('click', async ()=>{
 /* =================================================================
    BOOT
 ================================================================= */
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && currentUser) refreshData();
+});
+window.addEventListener('focus', () => { if (currentUser) refreshData(); });
+window.addEventListener('online', () => {
+  if (currentUser) { showToast('ອິນເຕີເນັດກັບມາແລ້ວ — ກຳລັງດຶງຂໍ້ມູນໃໝ່ 🔄'); refreshData(); }
+});
+
+document.getElementById('liveBadgeBtn')?.addEventListener('click', async ()=>{
+  showToast('ກຳລັງດຶງຂໍ້ມູນໃໝ່... 🔄');
+  await refreshData();
+  showToast('ອັບເດດຂໍ້ມູນລ່າສຸດແລ້ວ ✅');
+});
+
 bootstrap();
 tickRoundCountdown();
 tickAdminRoundStatus();
