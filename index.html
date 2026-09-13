@@ -974,12 +974,13 @@ let IS_LIVE = false;          // flips to true the first time a real fetch() suc
 ================================================================= */
 const ID_ONLY_ACTIONS = ['deleteBet', 'deleteRound', 'deleteUser'];
 
-function callServer(fn, arg){
+function callServer(fn, arg, _retryCount){
   let payload = ID_ONLY_ACTIONS.indexOf(fn) !== -1 ? { id: arg } : arg;
   if (payload === undefined) payload = {};
+  _retryCount = _retryCount || 0;
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 20000);
+  const timeoutId = setTimeout(() => controller.abort(), 25000);
 
   return fetch(API_URL, {
     method: 'POST',
@@ -993,13 +994,19 @@ function callServer(fn, arg){
   })
   .then(data => { IS_LIVE = true; return data; })
   .catch(err => {
+    // ✅ ລອງໃໝ່ອັດຕະໂນມັດສູງສຸດ 3 ຄັ້ງກ່ອນຈະຍອມແພ້ໄປໃຊ້ Demo —
+    // ເພາະ Apps Script ມັກຈະຄືນ 404/ຂໍ້ຜິດພາດຊົ່ວຄາວ ໂດຍສະເພາະຕອນຄົນໃຊ້ພ້ອມກັນຫຼາຍ
+    if (_retryCount < 3) {
+      const delay = 700 * Math.pow(2, _retryCount); // 700ms, 1.4s, 2.8s
+      return new Promise(resolve => setTimeout(resolve, delay))
+        .then(() => callServer(fn, arg, _retryCount + 1));
+    }
     IS_LIVE = false;
-    console.error('callServer(' + fn + ') ລົ້ມເຫຼວ, ໃຊ້ຂໍ້ມູນ Demo ແທນ:', err);
+    console.error('callServer(' + fn + ') ລົ້ມເຫຼວ ຫຼັງລອງ ' + (_retryCount + 1) + ' ຄັ້ງ, ໃຊ້ຂໍ້ມູນ Demo ແທນ:', err);
     return demoFallback(fn, [payload]);
   })
   .finally(() => clearTimeout(timeoutId));
 }
-
 /* =================================================================
    DEMO FALLBACK — kicks in automatically if API_URL is unreachable
    (wrong URL, not deployed yet, deployment set to private, etc.),
@@ -1118,7 +1125,9 @@ async function bootstrap(){
       refreshData();
       if (!window.__pollingStarted) {
         window.__pollingStarted = true;
-        setInterval(refreshData, 45000);
+        setInterval(() => {
+          if (document.visibilityState === 'visible') refreshData(); // ✅ ຢຸດຍິງ request ຕອນປິດ/ຫຍໍ້ແທັບໄວ້
+        }, 45000);
       }
       return;
     }
@@ -1240,6 +1249,7 @@ async function init(){
   document.getElementById('adminNavBtn').style.display = currentUser.role === 'admin' ? 'block' : 'none';
 
   setSyncing(true);
+  document.getElementById('liveLabel').textContent = 'ກຳລັງເຊື່ອມຕໍ່...';
   let data = null;
   const errors = [];
   const scopeCtx = { username: currentUser.username, isAdmin: currentUser.role === 'admin' };
@@ -1301,7 +1311,9 @@ async function init(){
 
   if (!window.__pollingStarted) {
     window.__pollingStarted = true;
-    setInterval(refreshData, 45000); // light polling for "realtime" sync
+    setInterval(() => {
+      if (document.visibilityState === 'visible') refreshData();
+    }, 45000);
   }
 }
 
